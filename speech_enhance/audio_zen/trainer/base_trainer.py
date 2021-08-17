@@ -18,6 +18,7 @@ import audio_zen.metrics as metrics
 from audio_zen.acoustics.feature import stft, istft
 from audio_zen.acoustics.utils import transform_pesq_range
 from audio_zen.utils import prepare_empty_dir, ExecutionTime
+from utils.logger import log
 
 plt.switch_backend('agg')
 
@@ -193,7 +194,8 @@ class BaseTrainer:
         # The newer best-scored checkpoint will overwrite the older one.
         if is_best_epoch:
             print(self.color_tool.red(f"\t Found a best score in the {epoch} epoch, saving..."))
-            torch.save(state_dict, (self.checkpoints_dir / f"best_model_{str(epoch).zfill(4)}.tar").as_posix())
+            log(f"\t Found a best score in the {epoch} epoch, saving...")
+            torch.save(state_dict, (self.checkpoints_dir / f"best_model.tar").as_posix())
 
     def _is_best_epoch(self, score, save_max_metric_score=True):
         """
