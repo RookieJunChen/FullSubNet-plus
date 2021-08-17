@@ -224,13 +224,13 @@ if __name__ == '__main__':
     import datetime
 
     with torch.no_grad():
-        ipt = torch.rand(1, 257, 1000)
-        model = SequenceModel(
+        ipt = torch.rand(1, 514, 1000)
+        model = Complex_SequenceModel(
             input_size=257,
-            output_size=2,
-            hidden_size=512,
+            output_size=257,
+            hidden_size=256,
             bidirectional=False,
-            num_layers=3,
+            num_layers=2,
             sequence_model="LSTM"
         )
 
