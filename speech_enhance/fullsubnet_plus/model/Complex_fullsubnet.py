@@ -100,9 +100,7 @@ class Model(BaseModel):
         fb_output_imag_unfolded = fb_output_imag_unfolded.reshape(batch_size, num_freqs, self.fb_num_neighbors * 2 + 1,
                                                                   num_frames)
 
-        # Unfold the output of the fullband model, [B, N=F, C, F_f, T]
-        # fb_output_unfolded = self.unfold(fb_output, num_neighbor=self.fb_num_neighbors)
-        # fb_output_unfolded = fb_output_unfolded.reshape(batch_size, num_freqs, self.fb_num_neighbors * 2 + 1, num_frames)
+
 
         noisy_real, noisy_imag = torch.chunk(noisy, chunks=2, dim=1)
 
@@ -115,10 +113,7 @@ class Model(BaseModel):
         noisy_imag_unfolded = noisy_imag_unfolded.reshape(batch_size, num_freqs, self.sb_num_neighbors * 2 + 1,
                                                           num_frames)
 
-        # # Unfold noisy input, [B, N=F, C, F_s, T]
-        # noisy_mag_unfolded = self.unfold(noisy, num_neighbor=self.sb_num_neighbors)
-        # noisy_mag_unfolded = noisy_mag_unfolded.reshape(batch_size, num_freqs, self.sb_num_neighbors * 2 + 1,
-        #                                                 num_frames)
+      
 
         # Concatenation, [B, F, (F_s + F_f), T]
         sb_input_real = torch.cat([noisy_real_unfolded, fb_output_real_unfolded], dim=2)
@@ -188,5 +183,5 @@ if __name__ == "__main__":
         # print(f"iSTFT: {datetime.datetime.now() - start}")
         #
         # print(f"{datetime.datetime.now() - start}")
-        ipt = torch.rand(3, 1, 257, 200)
+        ipt = torch.rand(3, 2, 257, 200)
         print(model(ipt).shape)
