@@ -7,7 +7,9 @@ from audio_zen.model.module.sequence_model import SequenceModel, Complex_Sequenc
 
 # for log
 from utils.logger import log
-print=log
+
+print = log
+
 
 class Model(BaseModel):
     def __init__(self,
@@ -36,7 +38,7 @@ class Model(BaseModel):
         super().__init__()
         assert sequence_model in ("GRU", "LSTM"), f"{self.__class__.__name__} only support GRU and LSTM."
 
-        self.fb_model = SequenceModel(
+        self.fb_model = Complex_SequenceModel(
             input_size=num_freqs,
             output_size=num_freqs,
             hidden_size=fb_model_hidden_size,
@@ -46,9 +48,9 @@ class Model(BaseModel):
             output_activate_function=fb_output_activate_function
         )
 
-        self.sb_model = SequenceModel(
+        self.sb_model = Complex_SequenceModel(
             input_size=(sb_num_neighbors * 2 + 1) + (fb_num_neighbors * 2 + 1),
-            output_size=2,
+            output_size=1,
             hidden_size=sb_model_hidden_size,
             num_layers=2,
             bidirectional=False,
@@ -65,48 +67,78 @@ class Model(BaseModel):
         if weight_init:
             self.apply(self.weight_init)
 
-    def forward(self, noisy_mag):
+    def forward(self, noisy):
         """
         Args:
-            noisy_mag: noisy magnitude spectrogram
+            noisy: noisy real part and imag part spectrogram
 
         Returns:
             The real part and imag part of the enhanced spectrogram
 
         Shapes:
-            noisy_mag: [B, 1, F, T]
+            noisy: [B, 2, F, T]
             return: [B, 2, F, T]
         """
-        assert noisy_mag.dim() == 4
-        noisy_mag = functional.pad(noisy_mag, [0, self.look_ahead])  # Pad the look ahead
-        batch_size, num_channels, num_freqs, num_frames = noisy_mag.size()
-        assert num_channels == 1, f"{self.__class__.__name__} takes the mag feature as inputs."
+        assert noisy.dim() == 4
+        noisy = functional.pad(noisy, [0, self.look_ahead])  # Pad the look ahead
+        batch_size, num_channels, num_freqs, num_frames = noisy.size()
+        assert num_channels == 2, f"{self.__class__.__name__} takes the real and imag feature as inputs."
 
         # Fullband model
-        fb_input = self.norm(noisy_mag).reshape(batch_size, num_channels * num_freqs, num_frames)
-        fb_output = self.fb_model(fb_input).reshape(batch_size, 1, num_freqs, num_frames)
+        fb_input = self.norm(noisy).reshape(batch_size, num_channels * num_freqs, num_frames)
+        fb_output = self.fb_model(fb_input).reshape(batch_size, 2, num_freqs, num_frames)
+
+        fb_output_real, fb_output_imag = torch.chunk(fb_output, chunks=2, dim=1)
+
+        # Unfold the real output of the fullband model, [B, N=F, C, F_f, T]
+        fb_output_real_unfolded = self.unfold(fb_output_real, num_neighbor=self.fb_num_neighbors)
+        fb_output_real_unfolded = fb_output_real_unfolded.reshape(batch_size, num_freqs, self.fb_num_neighbors * 2 + 1,
+                                                                  num_frames)
+
+        # Unfold the imag output of the fullband model, [B, N=F, C, F_f, T]
+        fb_output_imag_unfolded = self.unfold(fb_output_imag, num_neighbor=self.fb_num_neighbors)
+        fb_output_imag_unfolded = fb_output_imag_unfolded.reshape(batch_size, num_freqs, self.fb_num_neighbors * 2 + 1,
+                                                                  num_frames)
 
         # Unfold the output of the fullband model, [B, N=F, C, F_f, T]
-        fb_output_unfolded = self.unfold(fb_output, num_neighbor=self.fb_num_neighbors)
-        fb_output_unfolded = fb_output_unfolded.reshape(batch_size, num_freqs, self.fb_num_neighbors * 2 + 1, num_frames)
+        # fb_output_unfolded = self.unfold(fb_output, num_neighbor=self.fb_num_neighbors)
+        # fb_output_unfolded = fb_output_unfolded.reshape(batch_size, num_freqs, self.fb_num_neighbors * 2 + 1, num_frames)
 
-        # Unfold noisy input, [B, N=F, C, F_s, T]
-        noisy_mag_unfolded = self.unfold(noisy_mag, num_neighbor=self.sb_num_neighbors)
-        noisy_mag_unfolded = noisy_mag_unfolded.reshape(batch_size, num_freqs, self.sb_num_neighbors * 2 + 1, num_frames)
+        noisy_real, noisy_imag = torch.chunk(noisy, chunks=2, dim=1)
+
+        # Unfold noisy_real part, [B, N=F, C, F_s, T]
+        noisy_real_unfolded = self.unfold(noisy_real, num_neighbor=self.sb_num_neighbors)
+        noisy_real_unfolded = noisy_real_unfolded.reshape(batch_size, num_freqs, self.sb_num_neighbors * 2 + 1,
+                                                          num_frames)
+        # Unfold noisy_imag part, [B, N=F, C, F_s, T]
+        noisy_imag_unfolded = self.unfold(noisy_imag, num_neighbor=self.sb_num_neighbors)
+        noisy_imag_unfolded = noisy_imag_unfolded.reshape(batch_size, num_freqs, self.sb_num_neighbors * 2 + 1,
+                                                          num_frames)
+
+        # # Unfold noisy input, [B, N=F, C, F_s, T]
+        # noisy_mag_unfolded = self.unfold(noisy, num_neighbor=self.sb_num_neighbors)
+        # noisy_mag_unfolded = noisy_mag_unfolded.reshape(batch_size, num_freqs, self.sb_num_neighbors * 2 + 1,
+        #                                                 num_frames)
 
         # Concatenation, [B, F, (F_s + F_f), T]
-        sb_input = torch.cat([noisy_mag_unfolded, fb_output_unfolded], dim=2)
+        sb_input_real = torch.cat([noisy_real_unfolded, fb_output_real_unfolded], dim=2)
+
+        # Concatenation, [B, F, (F_s + F_f), T]
+        sb_input_imag = torch.cat([noisy_imag_unfolded, fb_output_imag_unfolded], dim=2)
+
+        sb_input = torch.cat([sb_input_real, sb_input_imag], dim=2)
         sb_input = self.norm(sb_input)
 
         # Speeding up training without significant performance degradation. These will be updated to the paper later.
         if batch_size > 1:
-            sb_input = drop_band(sb_input.permute(0, 2, 1, 3), num_groups=self.num_groups_in_drop_band)  # [B, (F_s + F_f), F//num_groups, T]
+            sb_input = drop_band(sb_input.permute(0, 2, 1, 3),
+                                 num_groups=self.num_groups_in_drop_band)  # [B, (F_s + F_f), F//num_groups, T]
             num_freqs = sb_input.shape[2]
             sb_input = sb_input.permute(0, 2, 1, 3)  # [B, F//num_groups, (F_s + F_f), T]
 
         sb_input = sb_input.reshape(
             batch_size * num_freqs,
-            (self.sb_num_neighbors * 2 + 1) + (self.fb_num_neighbors * 2 + 1),
+            2*((self.sb_num_neighbors * 2 + 1) + (self.fb_num_neighbors * 2 + 1)),
             num_frames
         )
 
