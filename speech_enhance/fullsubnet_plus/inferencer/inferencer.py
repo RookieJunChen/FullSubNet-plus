@@ -138,6 +138,30 @@ class Inferencer(BaseInferencer):
         return enhanced
 
     @torch.no_grad()
+    def complex_full_band_crm_mask(self, noisy, inference_args):
+        noisy_complex = self.torch_stft(noisy)
+
+        noisy_input = torch.stack([noisy_complex.real, noisy_complex.imag], dim=1)
+
+        t1 = time.time()
+        pred_crm = self.model(noisy_input)
+        t2 = time.time()
+        pred_crm = pred_crm.permute(0, 2, 3, 1)
+
+        pred_crm = decompress_cIRM(pred_crm)
+        enhanced_real = pred_crm[..., 0] * noisy_complex.real - pred_crm[..., 1] * noisy_complex.imag
+        enhanced_imag = pred_crm[..., 1] * noisy_complex.real + pred_crm[..., 0] * noisy_complex.imag
+        enhanced_complex = torch.stack((enhanced_real, enhanced_imag), dim=-1)
+        enhanced = self.torch_istft(enhanced_complex, length=noisy.size(-1))
+        enhanced = enhanced.detach().squeeze(0).cpu().numpy()
+
+        #
+        rtf = (t2 - t1) / (len(enhanced) * 1.0 / self.acoustic_config["sr"])
+        print(f"model rtf: {rtf}")
+
+        return enhanced
+
+    @torch.no_grad()
     def overlapped_chunk(self, noisy, inference_args):
         sr = self.acoustic_config["sr"]
 

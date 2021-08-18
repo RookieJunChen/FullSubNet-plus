@@ -34,7 +34,7 @@ class Trainer(BaseTrainer):
             noisy_complex = self.torch_stft(noisy)
             clean_complex = self.torch_stft(clean)
 
-            noisy_mag, _ = mag_phase(noisy_complex)
+            noisy_input = torch.stack([noisy_complex.real, noisy_complex.imag], dim=1)
             ground_truth_cIRM = build_complex_ideal_ratio_mask(noisy_complex, clean_complex)  # [B, F, T, 2]
             ground_truth_cIRM = drop_band(
                 ground_truth_cIRM.permute(0, 3, 1, 2),  # [B, 2, F ,T]
@@ -42,9 +42,8 @@ class Trainer(BaseTrainer):
             ).permute(0, 2, 3, 1)
 
             with autocast(enabled=self.use_amp):
-                # [B, F, T] => [B, 1, F, T] => model => [B, 2, F, T] => [B, F, T, 2]
-                noisy_mag = noisy_mag.unsqueeze(1)
-                cRM = self.model(noisy_mag)
+                # [B, 2, F, T] => model => [B, 2, F, T] => [B, F, T, 2]
+                cRM = self.model(noisy_input)
                 cRM = cRM.permute(0, 2, 3, 1)
                 loss = self.loss_function(ground_truth_cIRM, cRM)
 
@@ -94,11 +93,10 @@ class Trainer(BaseTrainer):
             noisy_complex = self.torch_stft(noisy)
             clean_complex = self.torch_stft(clean)
 
-            noisy_mag, _ = mag_phase(noisy_complex)
+            noisy_input = torch.stack([noisy_complex.real, noisy_complex.imag], dim=1)
             cIRM = build_complex_ideal_ratio_mask(noisy_complex, clean_complex)  # [B, F, T, 2]
 
-            noisy_mag = noisy_mag.unsqueeze(1)
-            cRM = self.model(noisy_mag)
+            cRM = self.model(noisy_input)
             cRM = cRM.permute(0, 2, 3, 1)
 
             loss = self.loss_function(cIRM, cRM)
