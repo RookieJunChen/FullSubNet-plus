@@ -40,8 +40,12 @@ def entry(rank, world_size, config, resume, only_validation):
     # The DistributedSampler will split the dataset into the several cross-process parts.
     # On the contrary, "Sampler=None, shuffle=True", each GPU will get all data in the whole dataset.
 
+    train_dataset = initialize_module(config["train_dataset"]["path"], args=config["train_dataset"]["args"])
+    sampler = DistributedSampler(dataset=train_dataset, num_replicas=world_size, rank=rank, shuffle=True)
     train_dataloader = DataLoader(
-        dataset=initialize_module(config["train_dataset"]["path"], args=config["train_dataset"]["args"]),
+        dataset=train_dataset,
+        sampler=sampler,
+        shuffle=False,
         **config["train_dataset"]["dataloader"],
     )
 

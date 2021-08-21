@@ -182,7 +182,6 @@ class Dataset(BaseDataset):
         return noisy_y, clean_y
 
     def __getitem__(self, item):
-        print(item)
         clean_file = self.clean_dataset_list[item]
         clean_y = load_wav(clean_file, sr=self.sr)
         clean_y = subsample(clean_y, sub_sample_length=int(self.sub_sample_length * self.sr))
