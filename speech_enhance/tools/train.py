@@ -9,7 +9,7 @@ import toml
 import torch
 import torch.distributed as dist
 import torch.multiprocessing as mp
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, DistributedSampler
 
 sys.path.append(os.path.abspath(os.path.join(__file__, "..", "..")))
 import audio_zen.loss as loss
