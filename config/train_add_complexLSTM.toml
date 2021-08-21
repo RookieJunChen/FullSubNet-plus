@@ -1,5 +1,5 @@
 [meta]
-save_dir = "logs/FullSubNet_origin"
+save_dir = "logs/Complex_fullsubnet_large"
 description = "This is a description of FullSubNet experiment."
 seed = 0  # set random seed for random, numpy, pytorch-gpu and pytorch-cpu
 keep_reproducibility = false  # see https://pytorch.org/docs/stable/notes/randomness.html
@@ -25,7 +25,7 @@ beta2 = 0.999
 
 
 [train_dataset]
-path = "fullsubnet.dataset.dataset_train.Dataset"
+path = "fullsubnet_plus.dataset.dataset_train.Dataset"
 [train_dataset.args]
 clean_dataset = "train_data_fsn_dns_master/clean_book.txt"
 clean_dataset_limit = false
@@ -50,15 +50,14 @@ target_dB_FS_floating_value = 10
 
 
 [train_dataset.dataloader]
-batch_size = 24
-num_workers = 12
+batch_size = 5
+num_workers = 48
 drop_last = true
 pin_memory = true
-shuffle = true
 
 
 [validation_dataset]
-path = "fullsubnet.dataset.dataset_validation.Dataset"
+path = "fullsubnet_plus.dataset.dataset_validation.Dataset"
 [validation_dataset.args]
 dataset_dir_list = [
     "data/DNS-Challenge/DNS-Challenge-interspeech2020-master/datasets/test_set/synthetic/with_reverb/",
@@ -68,7 +67,7 @@ sr = 16000
 
 
 [model]
-path = "fullsubnet.model.fullsubnet.Model"
+path = "fullsubnet_plus.model.Complex_fullsubnet.Model"
 [model.args]
 sb_num_neighbors = 15
 fb_num_neighbors = 0
@@ -85,7 +84,7 @@ num_groups_in_drop_band = 2
 
 
 [trainer]
-path = "fullsubnet.trainer.trainer.Trainer"
+path = "fullsubnet_plus.trainer.trainer.Trainer"
 [trainer.train]
 clip_grad_norm_value = 10
 epochs = 9999
