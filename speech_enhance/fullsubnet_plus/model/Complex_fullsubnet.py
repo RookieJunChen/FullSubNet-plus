@@ -84,11 +84,11 @@ class Model(BaseModel):
         batch_size, num_channels, num_freqs, num_frames = noisy.size()
         assert num_channels == 2, f"{self.__class__.__name__} takes the real and imag feature as inputs."
 
-        noisy_real, noisy_imag = torch.chunk(noisy, chunks=2, dim=1)
-        noisy = torch.cat([self.norm(noisy_real), self.norm(noisy_imag)], dim=1)
+        # noisy_real, noisy_imag = torch.chunk(noisy, chunks=2, dim=1)
+        # noisy = torch.cat([self.norm(noisy_real), self.norm(noisy_imag)], dim=1)
 
         # Fullband model
-        fb_input = noisy.reshape(batch_size, num_channels * num_freqs, num_frames)
+        fb_input = self.norm(noisy).reshape(batch_size, num_channels * num_freqs, num_frames)
         fb_output = self.fb_model(fb_input).reshape(batch_size, 2, num_freqs, num_frames)
 
         fb_output_real, fb_output_imag = torch.chunk(fb_output, chunks=2, dim=1)
@@ -103,8 +103,7 @@ class Model(BaseModel):
         fb_output_imag_unfolded = fb_output_imag_unfolded.reshape(batch_size, num_freqs, self.fb_num_neighbors * 2 + 1,
                                                                   num_frames)
 
-
-
+        noisy_real, noisy_imag = torch.chunk(noisy, chunks=2, dim=1)
 
 
         # Unfold noisy_real part, [B, N=F, C, F_s, T]
@@ -124,8 +123,8 @@ class Model(BaseModel):
         # Concatenation, [B, F, (F_s + F_f), T]
         sb_input_imag = torch.cat([noisy_imag_unfolded, fb_output_imag_unfolded], dim=2)
 
-        sb_input = torch.cat([self.norm(sb_input_real), self.norm(sb_input_imag)], dim=2)
-        # sb_input = self.norm(sb_input)
+        sb_input = torch.cat([sb_input_real, sb_input_imag], dim=2)
+        sb_input = self.norm(sb_input)
 
         # Speeding up training without significant performance degradation. These will be updated to the paper later.
         if batch_size > 1:
