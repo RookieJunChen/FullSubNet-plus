@@ -4,6 +4,7 @@ from torch.nn import functional
 from audio_zen.acoustics.feature import drop_band
 from audio_zen.model.base_model import BaseModel
 from audio_zen.model.module.sequence_model import SequenceModel
+from audio_zen.model.module.attention_model import ChannelSELayer
 
 # for log
 from utils.logger import log
@@ -35,6 +36,8 @@ class Model(BaseModel):
         """
         super().__init__()
         assert sequence_model in ("GRU", "LSTM"), f"{self.__class__.__name__} only support GRU and LSTM."
+
+        self.channel_attention = ChannelSELayer(num_channels=num_freqs)
 
         self.fb_model = SequenceModel(
             input_size=num_freqs,
@@ -84,6 +87,7 @@ class Model(BaseModel):
 
         # Fullband model
         fb_input = self.norm(noisy_mag).reshape(batch_size, num_channels * num_freqs, num_frames)
+        fb_input = self.channel_attention(fb_input)
         fb_output = self.fb_model(fb_input).reshape(batch_size, 1, num_freqs, num_frames)
 
         # Unfold the output of the fullband model, [B, N=F, C, F_f, T]
