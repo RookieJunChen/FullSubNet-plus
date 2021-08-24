@@ -4,7 +4,7 @@ from torch.nn import functional
 from audio_zen.acoustics.feature import drop_band
 from audio_zen.model.base_model import BaseModel
 from audio_zen.model.module.sequence_model import SequenceModel
-from audio_zen.model.module.attention_model import ChannelSELayer
+from audio_zen.model.module.attention_model import ChannelSELayer, ChannelECAlayer
 
 # for log
 from utils.logger import log
@@ -21,6 +21,7 @@ class Model(BaseModel):
                  sb_output_activate_function,
                  fb_model_hidden_size,
                  sb_model_hidden_size,
+                 channel_attention_model,
                  norm_type="offline_laplace_norm",
                  num_groups_in_drop_band=2,
                  subband_num=10,
@@ -39,9 +40,17 @@ class Model(BaseModel):
         assert sequence_model in ("GRU", "LSTM"), f"{self.__class__.__name__} only support GRU and LSTM."
 
         if subband_num == 1:
-            self.channel_attention = ChannelSELayer(num_channels=num_freqs)
+            self.num_channels = num_freqs
         else:
-            self.channel_attention = ChannelSELayer(num_channels=num_freqs//subband_num + 1)
+            self.num_channels = num_freqs//subband_num + 1
+
+        if channel_attention_model:
+            if channel_attention_model == "SE":
+                self.channel_attention = ChannelSELayer(num_channels=self.num_channels)
+            elif channel_attention_model == "ECA":
+                self.channel_attention = ChannelECAlayer(num_channels=self.num_channels)
+            else:
+                raise NotImplementedError(f"Not implemented channel attention model {self.channel_attention}")
 
         self.fb_model = SequenceModel(
             input_size=num_freqs,
