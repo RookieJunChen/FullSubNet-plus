@@ -48,7 +48,7 @@ class Model(BaseModel):
             if channel_attention_model == "SE":
                 self.channel_attention = ChannelSELayer(num_channels=self.num_channels)
             elif channel_attention_model == "ECA":
-                self.channel_attention = ChannelECAlayer(num_channels=self.num_channels)
+                self.channel_attention = ChannelECAlayer()
             else:
                 raise NotImplementedError(f"Not implemented channel attention model {self.channel_attention}")
 
