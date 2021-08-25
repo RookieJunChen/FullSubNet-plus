@@ -67,7 +67,7 @@ class ChannelCBAMLayer(nn.Module):
         # batch_size, num_channels, T = input_tensor.size()
         # Average pooling along each channel
         mean_squeeze_tensor = input_tensor.mean(dim=2)
-        max_squeeze_tensor = input_tensor.max(dim=2)
+        max_squeeze_tensor, _ = torch.max(input_tensor, dim=2) #input_tensor.max(dim=2)
         # channel excitation
         mean_fc_out_1 = self.relu(self.fc1(mean_squeeze_tensor))
         max_fc_out_1 = self.relu(self.fc1(max_squeeze_tensor))
