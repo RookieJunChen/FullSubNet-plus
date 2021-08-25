@@ -51,7 +51,7 @@ class ChannelCBAMLayer(nn.Module):
         :param num_channels: No of input channels
         :param reduction_ratio: By how much should the num_channels should be reduced
         """
-        super(ChannelSELayer, self).__init__()
+        super(ChannelCBAMLayer, self).__init__()
         num_channels_reduced = num_channels // reduction_ratio
         self.reduction_ratio = reduction_ratio
         self.fc1 = nn.Linear(num_channels, num_channels_reduced, bias=True)
