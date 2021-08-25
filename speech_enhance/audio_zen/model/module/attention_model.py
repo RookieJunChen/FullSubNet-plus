@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+import math
 
 
 class ChannelSELayer(nn.Module):
@@ -40,7 +41,8 @@ class ChannelSELayer(nn.Module):
 
 
 class ChannelECAlayer(nn.Module):
-    """Constructs a ECA module.
+    """
+     a ECA module.
     Args:
         channel: Number of channels of the input feature map
         k_size: Adaptive selection of kernel size
@@ -63,3 +65,32 @@ class ChannelECAlayer(nn.Module):
         y = self.sigmoid(y)
 
         return x * y.expand_as(x)
+
+
+class SelfAttentionlayer(nn.Module):
+    """
+    Easy self attention.
+    """
+
+    def __init__(self, amp_dim=257, att_dim=257):
+        super(SelfAttentionlayer, self).__init__()
+        self.d_k = amp_dim
+        self.q_linear = nn.Linear(amp_dim, att_dim)
+        self.k_linear = nn.Linear(amp_dim, att_dim)
+        self.v_linear = nn.Linear(amp_dim, att_dim)
+        self.sigmoid = nn.Sigmoid()
+        self.out = nn.Linear(att_dim, amp_dim)
+
+    def forward(self, q, k, v):
+        q = self.q_linear(q)
+        k = self.k_linear(k)
+        v = self.v_linear(v)
+        output = self.attention(q, k, v)
+        output = self.out(output)
+        return output
+
+    def attention(self, q, k, v):
+        scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.d_k)
+        scores = self.sigmoid(scores)
+        output = torch.matmul(scores, v)
+        return output
