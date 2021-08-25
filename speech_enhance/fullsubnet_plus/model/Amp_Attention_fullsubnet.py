@@ -4,7 +4,7 @@ from torch.nn import functional
 from audio_zen.acoustics.feature import drop_band
 from audio_zen.model.base_model import BaseModel
 from audio_zen.model.module.sequence_model import SequenceModel
-from audio_zen.model.module.attention_model import ChannelSELayer, ChannelECAlayer
+from audio_zen.model.module.attention_model import ChannelSELayer, ChannelECAlayer, ChannelCBAMLayer
 
 # for log
 from utils.logger import log
@@ -49,6 +49,8 @@ class Model(BaseModel):
                 self.channel_attention = ChannelSELayer(num_channels=self.num_channels)
             elif channel_attention_model == "ECA":
                 self.channel_attention = ChannelECAlayer(channel=self.num_channels)
+            elif channel_attention_model == "CBAM":
+                self.channel_attention = ChannelCBAMLayer(num_channels=self.num_channels)
             else:
                 raise NotImplementedError(f"Not implemented channel attention model {self.channel_attention}")
 
