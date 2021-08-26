@@ -259,7 +259,7 @@ class FullSub_Att_Model(BaseModel):
                                                         num_frames)
 
         # Unfold attention noisy input, [B, N=F, C, F_s, T]
-        noisy_mag_unfolded = self.unfold(fb_input, num_neighbor=self.sb_num_neighbors)
+        noisy_mag_unfolded = self.unfold(fb_input.reshape(batch_size, 1, num_freqs, num_frames), num_neighbor=self.sb_num_neighbors)
         noisy_mag_unfolded = noisy_mag_unfolded.reshape(batch_size, num_freqs, self.sb_num_neighbors * 2 + 1,
                                                         num_frames)
 
