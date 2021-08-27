@@ -3,6 +3,7 @@ from torch.nn import functional
 
 from audio_zen.model.base_model import BaseModel
 from audio_zen.model.module.sequence_model import SequenceModel
+from audio_zen.model.module.attention_model import ChannelSELayer, ChannelECAlayer, ChannelCBAMLayer
 
 # for log
 from utils.logger import log
@@ -16,6 +17,7 @@ class Model(BaseModel):
             sequence_model,
             output_activate_function,
             look_ahead,
+            channel_attention_model="SE",
             norm_type="offline_laplace_norm",
             weight_init=True,
     ):
@@ -30,6 +32,15 @@ class Model(BaseModel):
             look_ahead:
         """
         super().__init__()
+        if channel_attention_model:
+            if channel_attention_model == "SE":
+                self.channel_attention = ChannelSELayer(num_channels=self.num_channels)
+            elif channel_attention_model == "ECA":
+                self.channel_attention = ChannelECAlayer(channel=self.num_channels)
+            elif channel_attention_model == "CBAM":
+                self.channel_attention = ChannelCBAMLayer(num_channels=self.num_channels)
+            else:
+                raise NotImplementedError(f"Not implemented channel attention model {self.channel_attention}")
         self.fullband_model = SequenceModel(
             input_size=num_freqs,
             output_size=num_freqs,
@@ -52,7 +63,7 @@ class Model(BaseModel):
             noisy_mag: [B, 1, F, T], noisy magnitude spectrogram
 
         Returns:
-            [B, 2, F, T], the real part and imag part of the enhanced spectrogram
+            [B, 1, F, T], the magnitude of the enhanced spectrogram
         """
         assert noisy_mag.dim() == 4
 
@@ -60,8 +71,9 @@ class Model(BaseModel):
         batch_size, num_channels, num_freqs, num_frames = noisy_mag.size()
         assert num_channels == 1, f"{self.__class__.__name__} takes the mag feature as inputs."
 
-        noisy_mag = self.norm(noisy_mag).reshape(batch_size, num_channels * num_freqs, num_frames)
-        output = self.fullband_model(noisy_mag).reshape(batch_size, 1, num_freqs, num_frames)
+        fb_input = self.norm(noisy_mag).reshape(batch_size, num_channels * num_freqs, num_frames)  # [B, F, T]
+        fb_input = self.channel_attention(fb_input)
+        output = self.fullband_model(fb_input).reshape(batch_size, 1, num_freqs, num_frames)
 
         return output[:, :, :, self.look_ahead:]
 
