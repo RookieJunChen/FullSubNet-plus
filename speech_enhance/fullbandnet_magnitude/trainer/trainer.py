@@ -104,7 +104,9 @@ class Trainer(BaseTrainer):
             loss = self.loss_function(IRM, RM)
 
             RM = decompress_cIRM(RM)
-
+            print(RM.shape)
+            print(torch.cos(noisy_angle).shape)
+            print(noisy_mag.shape)
             # enhanced_real = cRM[..., 0] * noisy_complex.real - cRM[..., 1] * noisy_complex.imag
             # enhanced_imag = cRM[..., 1] * noisy_complex.real + cRM[..., 0] * noisy_complex.imag
             enhanced_real = RM[..., 0] * noisy_mag * torch.cos(noisy_angle)
