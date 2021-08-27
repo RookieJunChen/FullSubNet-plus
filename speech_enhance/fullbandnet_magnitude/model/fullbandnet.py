@@ -34,11 +34,11 @@ class Model(BaseModel):
         super().__init__()
         if channel_attention_model:
             if channel_attention_model == "SE":
-                self.channel_attention = ChannelSELayer(num_channels=self.num_channels)
+                self.channel_attention = ChannelSELayer(num_channels=257)
             elif channel_attention_model == "ECA":
-                self.channel_attention = ChannelECAlayer(channel=self.num_channels)
+                self.channel_attention = ChannelECAlayer(channel=257)
             elif channel_attention_model == "CBAM":
-                self.channel_attention = ChannelCBAMLayer(num_channels=self.num_channels)
+                self.channel_attention = ChannelCBAMLayer(num_channels=257)
             else:
                 raise NotImplementedError(f"Not implemented channel attention model {self.channel_attention}")
         self.fullband_model = SequenceModel(
