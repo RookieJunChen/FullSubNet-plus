@@ -121,7 +121,7 @@ class SelfAttentionlayer(nn.Module):
         self.out = nn.Linear(att_dim, amp_dim)
 
     def forward(self, q, k, v):
-        q = self.q_linear(q)
+        q = self.q_linear(q)    # [B, T, F]
         k = self.k_linear(k)
         v = self.v_linear(v)
         output = self.attention(q, k, v)

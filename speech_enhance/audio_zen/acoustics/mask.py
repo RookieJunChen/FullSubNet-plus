@@ -7,6 +7,22 @@ import torch
 from audio_zen.constant import EPSILON
 
 
+def build_ideal_ratio_mask(noisy_mag, clean_mag) -> torch.Tensor:
+    """
+
+    Args:
+        noisy_mag: [B, F, T], noisy magnitude
+        clean_mag: [B, F, T], clean magnitude
+
+    Returns:
+        [B, F, T, 1]
+    """
+
+    ratio_mask = clean_mag / noisy_mag
+    ratio_mask = ratio_mask[..., None]
+    return compress_cIRM(ratio_mask, K=10, C=0.1)
+
+
 def build_complex_ideal_ratio_mask(noisy: torch.complex64, clean: torch.complex64) -> torch.Tensor:
     """
 
