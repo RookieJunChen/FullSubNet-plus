@@ -107,8 +107,8 @@ class Trainer(BaseTrainer):
 
             # enhanced_real = cRM[..., 0] * noisy_complex.real - cRM[..., 1] * noisy_complex.imag
             # enhanced_imag = cRM[..., 1] * noisy_complex.real + cRM[..., 0] * noisy_complex.imag
-            enhanced_real = RM[..., 0] * torch.cos(noisy_angle)
-            enhanced_imag = RM[..., 0] * torch.sin(noisy_angle)
+            enhanced_real = RM[..., 0] * noisy_mag * torch.cos(noisy_angle)
+            enhanced_imag = RM[..., 0] * noisy_mag * torch.sin(noisy_angle)
 
             enhanced_complex = torch.stack((enhanced_real, enhanced_imag), dim=-1)
             enhanced = self.torch_istft(enhanced_complex, length=noisy.size(-1))
