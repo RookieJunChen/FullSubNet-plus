@@ -17,8 +17,9 @@ def build_ideal_ratio_mask(noisy_mag, clean_mag) -> torch.Tensor:
     Returns:
         [B, F, T, 1]
     """
-
-    ratio_mask = clean_mag / noisy_mag
+    # noisy_mag_finetune = torch.sqrt(torch.square(noisy_mag) + EPSILON)
+    # ratio_mask = clean_mag / noisy_mag_finetune
+    ratio_mask = clean_mag / (noisy_mag +  EPSILON)
     ratio_mask = ratio_mask[..., None]
     return compress_cIRM(ratio_mask, K=10, C=0.1)
 
