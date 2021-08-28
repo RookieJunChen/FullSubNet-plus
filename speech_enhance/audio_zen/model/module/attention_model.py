@@ -87,7 +87,8 @@ class ChannelTimeSeneseSELayer(nn.Module):
         large_feature = self.largeConv1d(input_tensor)
 
         feature = torch.cat([small_feature, middle_feature, large_feature], dim=2)  # [B, num_channels, 3]
-        squeeze_tensor = self.feature_concate_fc(feature)  # [B, num_channels, 1]
+        squeeze_tensor = self.feature_concate_fc(feature)[..., 0]  # [B, num_channels]
+        
         # channel excitation
         fc_out_1 = self.relu(self.fc1(squeeze_tensor))
         fc_out_2 = self.sigmoid(self.fc2(fc_out_1))
