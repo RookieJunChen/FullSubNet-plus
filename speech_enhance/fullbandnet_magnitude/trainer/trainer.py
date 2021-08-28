@@ -38,16 +38,11 @@ class Trainer(BaseTrainer):
             clean_mag, _ = mag_phase(clean_complex)
 
             ground_truth_IRM = build_ideal_ratio_mask(noisy_mag, clean_mag)  # [B, F, T, 1]
-            # print(torch.max(ground_truth_IRM))
-            # print(ground_truth_IRM.shape)
             with autocast(enabled=self.use_amp):
                 # [B, F, T] => [B, 1, F, T] => model => [B, 1, F, T] => [B, F, T, 1]
                 noisy_mag = noisy_mag.unsqueeze(1)
                 IRM = self.model(noisy_mag)
                 IRM = IRM.permute(0, 2, 3, 1)
-                # print("IRM:", torch.max(IRM), torch.min(IRM))
-                # print(torch.max(IRM))
-                # print("G_IRM:", torch.max(ground_truth_IRM), torch.min(ground_truth_IRM))
                 loss = self.loss_function(ground_truth_IRM, IRM)
 
             self.scaler.scale(loss).backward()
@@ -106,21 +101,14 @@ class Trainer(BaseTrainer):
             RM = RM.permute(0, 2, 3, 1)
 
             loss = self.loss_function(IRM, RM)
-            print(torch.max(RM), RM.dtype)
             RM = decompress_cIRM(RM)
-            # print(RM.shape)
-            # print(torch.cos(noisy_angle).shape)
-            # print(noisy_mag.shape)
+            
             # enhanced_real = cRM[..., 0] * noisy_complex.real - cRM[..., 1] * noisy_complex.imag
             # enhanced_imag = cRM[..., 1] * noisy_complex.real + cRM[..., 0] * noisy_complex.imag
-            print(torch.max(RM), RM.dtype)
+           
             enhanced_mag = RM[..., 0] * noisy_mag[0, ...]
-            print(torch.max(enhanced_mag), enhanced_mag.dtype)
-            
             enhanced_real = enhanced_mag * torch.cos(noisy_angle)
             enhanced_imag = enhanced_mag * torch.sin(noisy_angle)
-            print(torch.max(enhanced_real), enhanced_real.dtype)
-            print(torch.max(enhanced_imag), enhanced_imag.dtype)
             enhanced_complex = torch.stack((enhanced_real, enhanced_imag), dim=-1)
             enhanced = self.torch_istft(enhanced_complex, length=noisy.size(-1))
 
