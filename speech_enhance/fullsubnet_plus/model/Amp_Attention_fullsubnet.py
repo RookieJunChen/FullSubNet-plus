@@ -4,7 +4,7 @@ from torch.nn import functional
 from audio_zen.acoustics.feature import drop_band
 from audio_zen.model.base_model import BaseModel
 from audio_zen.model.module.sequence_model import SequenceModel
-from audio_zen.model.module.attention_model import ChannelSELayer, ChannelECAlayer, ChannelCBAMLayer
+from audio_zen.model.module.attention_model import ChannelSELayer, ChannelECAlayer, ChannelCBAMLayer, ChannelTimeSeneseSELayer
 
 # for log
 from utils.logger import log
@@ -27,6 +27,7 @@ class Full_Att_Model(BaseModel):
                  norm_type="offline_laplace_norm",
                  num_groups_in_drop_band=2,
                  subband_num=10,
+                 kersize=[3, 5, 10],
                  weight_init=True,
                  ):
         """
@@ -53,6 +54,8 @@ class Full_Att_Model(BaseModel):
                 self.channel_attention = ChannelECAlayer(channel=self.num_channels)
             elif channel_attention_model == "CBAM":
                 self.channel_attention = ChannelCBAMLayer(num_channels=self.num_channels)
+            elif channel_attention_model == "TSSE":
+                self.channel_attention = ChannelTimeSeneseSELayer(num_channels=self.num_channels, kersize=kersize)
             else:
                 raise NotImplementedError(f"Not implemented channel attention model {self.channel_attention}")
 
@@ -165,6 +168,7 @@ class FullSub_Att_Model(BaseModel):
                  norm_type="offline_laplace_norm",
                  num_groups_in_drop_band=2,
                  subband_num=10,
+                 kersize=[3, 5, 10],
                  weight_init=True,
                  ):
         """
@@ -191,6 +195,8 @@ class FullSub_Att_Model(BaseModel):
                 self.channel_attention = ChannelECAlayer(channel=self.num_channels)
             elif channel_attention_model == "CBAM":
                 self.channel_attention = ChannelCBAMLayer(num_channels=self.num_channels)
+            elif channel_attention_model == "TSSE":
+                self.channel_attention = ChannelTimeSeneseSELayer(num_channels=self.num_channels, kersize=kersize)
             else:
                 raise NotImplementedError(f"Not implemented channel attention model {self.channel_attention}")
 

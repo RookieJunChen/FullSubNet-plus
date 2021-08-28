@@ -40,6 +40,63 @@ class ChannelSELayer(nn.Module):
         return output_tensor
 
 
+class ChannelTimeSeneseSELayer(nn.Module):
+    """
+    Re-implementation of Squeeze-and-Excitation (SE) block described in:
+        *Hu et al., Squeeze-and-Excitation Networks, arXiv:1709.01507*
+    """
+
+    def __init__(self, num_channels, reduction_ratio=2, kersize=[3, 5, 10]):
+        """
+        :param num_channels: No of input channels
+        :param reduction_ratio: By how much should the num_channels should be reduced
+        """
+        super(ChannelTimeSeneseSELayer, self).__init__()
+        num_channels_reduced = num_channels // reduction_ratio
+        self.reduction_ratio = reduction_ratio
+        self.smallConv1d = nn.Sequential(
+            nn.Conv1d(num_channels, num_channels, kernel_size=kersize[0], groups=num_channels),  # [B, num_channels, T]
+            nn.AdaptiveAvgPool1d(1),  # [B, num_channels, 1]
+            nn.ReLU(inplace=True)
+        )
+        self.middleConv1d = nn.Sequential(
+            nn.Conv1d(num_channels, num_channels, kernel_size=kersize[1], groups=num_channels),  # [B, num_channels, T]
+            nn.AdaptiveAvgPool1d(1),  # [B, num_channels, 1]
+            nn.ReLU(inplace=True)
+        )
+        self.largeConv1d = nn.Sequential(
+            nn.Conv1d(num_channels, num_channels, kernel_size=kersize[2], groups=num_channels),  # [B, num_channels, T]
+            nn.AdaptiveAvgPool1d(1),  # [B, num_channels, 1]
+            nn.ReLU(inplace=True)
+        )
+        self.feature_concate_fc = nn.Linear(3, 1, bias=True)
+        self.fc1 = nn.Linear(num_channels, num_channels_reduced, bias=True)
+        self.fc2 = nn.Linear(num_channels_reduced, num_channels, bias=True)
+        self.relu = nn.ReLU()
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, input_tensor):
+        """
+        :param input_tensor: X, shape = (batch_size, num_channels, H, W)
+        :return: output tensor
+        """
+        # batch_size, num_channels, T = input_tensor.size()
+        # Extracting multi-scale information in the time dimension
+        small_feature = self.smallConv1d(input_tensor)
+        middle_feature = self.middleConv1d(input_tensor)
+        large_feature = self.largeConv1d(input_tensor)
+
+        feature = torch.cat([small_feature, middle_feature, large_feature], dim=2)  # [B, num_channels, 3]
+        squeeze_tensor = self.feature_concate_fc(feature)  # [B, num_channels, 1]
+        # channel excitation
+        fc_out_1 = self.relu(self.fc1(squeeze_tensor))
+        fc_out_2 = self.sigmoid(self.fc2(fc_out_1))
+
+        a, b = squeeze_tensor.size()
+        output_tensor = torch.mul(input_tensor, fc_out_2.view(a, b, 1))
+        return output_tensor
+
+
 class ChannelCBAMLayer(nn.Module):
     """
     Re-implementation of Squeeze-and-Excitation (SE) block described in:
@@ -67,7 +124,7 @@ class ChannelCBAMLayer(nn.Module):
         # batch_size, num_channels, T = input_tensor.size()
         # Average pooling along each channel
         mean_squeeze_tensor = input_tensor.mean(dim=2)
-        max_squeeze_tensor, _ = torch.max(input_tensor, dim=2) #input_tensor.max(dim=2)
+        max_squeeze_tensor, _ = torch.max(input_tensor, dim=2)  # input_tensor.max(dim=2)
         # channel excitation
         mean_fc_out_1 = self.relu(self.fc1(mean_squeeze_tensor))
         max_fc_out_1 = self.relu(self.fc1(max_squeeze_tensor))
@@ -121,7 +178,7 @@ class SelfAttentionlayer(nn.Module):
         self.out = nn.Linear(att_dim, amp_dim)
 
     def forward(self, q, k, v):
-        q = self.q_linear(q)    # [B, T, F]
+        q = self.q_linear(q)  # [B, T, F]
         k = self.k_linear(k)
         v = self.v_linear(v)
         output = self.attention(q, k, v)
