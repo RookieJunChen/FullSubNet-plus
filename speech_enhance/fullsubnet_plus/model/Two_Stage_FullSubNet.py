@@ -4,6 +4,9 @@ from torch.nn import functional
 from audio_zen.acoustics.feature import drop_band
 from audio_zen.model.base_model import BaseModel
 from audio_zen.model.module.sequence_model import SequenceModel, Complex_SequenceModel
+from fullsubnet_plus.model.Complex_fullsubnet import Complex_FullSubNet
+from fullsubnet_plus.model.Amp_Attention_fullsubnet import FullSub_Att_FullSubNet, Full_Att_FullSubNet
+
 
 # for log
 from utils.logger import log
@@ -11,7 +14,7 @@ from utils.logger import log
 print = log
 
 
-class Complex_FullSubNet(BaseModel):
+class Two_Stage_FullSubNet(BaseModel):
     def __init__(self,
                  num_freqs,
                  look_ahead,
@@ -22,9 +25,12 @@ class Complex_FullSubNet(BaseModel):
                  sb_output_activate_function,
                  fb_model_hidden_size,
                  sb_model_hidden_size,
-                 output_size=2,
+                 channel_attention_model,
                  norm_type="offline_laplace_norm",
                  num_groups_in_drop_band=2,
+                 output_size=2,
+                 subband_num=1,
+                 kersize=[3, 5, 10],
                  weight_init=True,
                  ):
         """
@@ -152,7 +158,7 @@ if __name__ == "__main__":
     import datetime
 
     with torch.no_grad():
-        model = Complex_FullSubNet(
+        model = Model(
             sb_num_neighbors=15,
             fb_num_neighbors=0,
             num_freqs=257,

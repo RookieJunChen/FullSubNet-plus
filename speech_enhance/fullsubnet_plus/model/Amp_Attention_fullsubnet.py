@@ -4,7 +4,8 @@ from torch.nn import functional
 from audio_zen.acoustics.feature import drop_band
 from audio_zen.model.base_model import BaseModel
 from audio_zen.model.module.sequence_model import SequenceModel
-from audio_zen.model.module.attention_model import ChannelSELayer, ChannelECAlayer, ChannelCBAMLayer, ChannelTimeSeneseSELayer
+from audio_zen.model.module.attention_model import ChannelSELayer, ChannelECAlayer, ChannelCBAMLayer, \
+    ChannelTimeSeneseSELayer
 
 # for log
 from utils.logger import log
@@ -12,7 +13,7 @@ from utils.logger import log
 print = log
 
 
-class Full_Att_Model(BaseModel):
+class Full_Att_FullSubNet(BaseModel):
     def __init__(self,
                  num_freqs,
                  look_ahead,
@@ -26,7 +27,8 @@ class Full_Att_Model(BaseModel):
                  channel_attention_model,
                  norm_type="offline_laplace_norm",
                  num_groups_in_drop_band=2,
-                 subband_num=10,
+                 output_size=2,
+                 subband_num=1,
                  kersize=[3, 5, 10],
                  weight_init=True,
                  ):
@@ -71,7 +73,7 @@ class Full_Att_Model(BaseModel):
 
         self.sb_model = SequenceModel(
             input_size=(sb_num_neighbors * 2 + 1) + (fb_num_neighbors * 2 + 1),
-            output_size=2,
+            output_size=output_size,
             hidden_size=sb_model_hidden_size,
             num_layers=2,
             bidirectional=False,
@@ -106,7 +108,7 @@ class Full_Att_Model(BaseModel):
         assert num_channels == 1, f"{self.__class__.__name__} takes the mag feature as inputs."
 
         if self.subband_num == 1:
-            fb_input = self.norm(noisy_mag).reshape(batch_size, num_channels * num_freqs, num_frames)   # [B, F, T]
+            fb_input = self.norm(noisy_mag).reshape(batch_size, num_channels * num_freqs, num_frames)  # [B, F, T]
             fb_input = self.channel_attention(fb_input)
         else:
             pad_num = self.subband_num - num_freqs % self.subband_num
@@ -153,7 +155,7 @@ class Full_Att_Model(BaseModel):
         return output
 
 
-class FullSub_Att_Model(BaseModel):
+class FullSub_Att_FullSubNet(BaseModel):
     def __init__(self,
                  num_freqs,
                  look_ahead,
@@ -167,7 +169,8 @@ class FullSub_Att_Model(BaseModel):
                  channel_attention_model,
                  norm_type="offline_laplace_norm",
                  num_groups_in_drop_band=2,
-                 subband_num=10,
+                 output_size=2,
+                 subband_num=1,
                  kersize=[3, 5, 10],
                  weight_init=True,
                  ):
@@ -212,7 +215,7 @@ class FullSub_Att_Model(BaseModel):
 
         self.sb_model = SequenceModel(
             input_size=(sb_num_neighbors * 2 + 1) + (fb_num_neighbors * 2 + 1),
-            output_size=2,
+            output_size=output_size,
             hidden_size=sb_model_hidden_size,
             num_layers=2,
             bidirectional=False,
@@ -247,7 +250,7 @@ class FullSub_Att_Model(BaseModel):
         assert num_channels == 1, f"{self.__class__.__name__} takes the mag feature as inputs."
 
         if self.subband_num == 1:
-            fb_input = self.norm(noisy_mag).reshape(batch_size, num_channels * num_freqs, num_frames)   # [B, F, T]
+            fb_input = self.norm(noisy_mag).reshape(batch_size, num_channels * num_freqs, num_frames)  # [B, F, T]
             fb_input = self.channel_attention(fb_input)
         else:
             pad_num = self.subband_num - num_freqs % self.subband_num
@@ -265,7 +268,8 @@ class FullSub_Att_Model(BaseModel):
                                                         num_frames)
 
         # Unfold attention noisy input, [B, N=F, C, F_s, T]
-        noisy_mag_unfolded = self.unfold(fb_input.reshape(batch_size, 1, num_freqs, num_frames), num_neighbor=self.sb_num_neighbors)
+        noisy_mag_unfolded = self.unfold(fb_input.reshape(batch_size, 1, num_freqs, num_frames),
+                                         num_neighbor=self.sb_num_neighbors)
         noisy_mag_unfolded = noisy_mag_unfolded.reshape(batch_size, num_freqs, self.sb_num_neighbors * 2 + 1,
                                                         num_frames)
 
@@ -298,7 +302,7 @@ if __name__ == "__main__":
     import datetime
 
     with torch.no_grad():
-        model = Full_Att_Model(
+        model = Full_Att_FullSubNet(
             sb_num_neighbors=15,
             fb_num_neighbors=0,
             num_freqs=257,
