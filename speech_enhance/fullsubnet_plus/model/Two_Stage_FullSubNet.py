@@ -197,7 +197,7 @@ class Two_Stage_FullSubNet_Small(BaseModel):
         real_input = (self.middle_fc(real_con.permute(0, 1, 3, 2))).permute(0, 1, 3, 2)
         imag_input = (self.middle_fc(imag_con.permute(0, 1, 3, 2))).permute(0, 1, 3, 2)
 
-        complex_input = torch.stack([real_input, imag_input], dim=1)    # [B, 2, F, T]
+        complex_input = torch.cat([real_input, imag_input], dim=1)    # [B, 2, F, T]
         cIRM = self.complex_model(complex_input)
 
         return IRM, cIRM
