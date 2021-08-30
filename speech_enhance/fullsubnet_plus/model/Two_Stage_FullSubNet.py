@@ -75,6 +75,8 @@ class Two_Stage_FullSubNet_Large(BaseModel):
             weight_init=weight_init
         )
 
+        self.num_groups_in_drop_band = num_groups_in_drop_band
+
         if weight_init:
             self.apply(self.weight_init)
 
@@ -157,6 +159,8 @@ class Two_Stage_FullSubNet_Small(BaseModel):
             num_groups_in_drop_band=num_groups_in_drop_band,
             weight_init=weight_init
         )
+
+        self.num_groups_in_drop_band = num_groups_in_drop_band
 
         if weight_init:
             self.apply(self.weight_init)
