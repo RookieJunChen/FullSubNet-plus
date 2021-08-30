@@ -86,6 +86,7 @@ class Full_Att_FullSubNet(BaseModel):
         self.look_ahead = look_ahead
         self.norm = self.norm_wrapper(norm_type)
         self.num_groups_in_drop_band = num_groups_in_drop_band
+        self.output_size = output_size
 
         if weight_init:
             self.apply(self.weight_init)
@@ -149,7 +150,7 @@ class Full_Att_FullSubNet(BaseModel):
 
         # [B * F, (F_s + F_f), T] => [B * F, 2, T] => [B, F, 2, T]
         sb_mask = self.sb_model(sb_input)
-        sb_mask = sb_mask.reshape(batch_size, num_freqs, 2, num_frames).permute(0, 2, 1, 3).contiguous()
+        sb_mask = sb_mask.reshape(batch_size, num_freqs, self.output_size, num_frames).permute(0, 2, 1, 3).contiguous()
 
         output = sb_mask[:, :, :, self.look_ahead:]
         return output
@@ -228,6 +229,7 @@ class FullSub_Att_FullSubNet(BaseModel):
         self.look_ahead = look_ahead
         self.norm = self.norm_wrapper(norm_type)
         self.num_groups_in_drop_band = num_groups_in_drop_band
+        self.output_size = output_size
 
         if weight_init:
             self.apply(self.weight_init)
@@ -292,7 +294,7 @@ class FullSub_Att_FullSubNet(BaseModel):
 
         # [B * F, (F_s + F_f), T] => [B * F, 2, T] => [B, F, 2, T]
         sb_mask = self.sb_model(sb_input)
-        sb_mask = sb_mask.reshape(batch_size, num_freqs, 2, num_frames).permute(0, 2, 1, 3).contiguous()
+        sb_mask = sb_mask.reshape(batch_size, num_freqs, self.output_size, num_frames).permute(0, 2, 1, 3).contiguous()
 
         output = sb_mask[:, :, :, self.look_ahead:]
         return output
