@@ -56,6 +56,8 @@ class BaseTrainer:
 
         # Trainer.train in the config
         self.train_config = config["trainer"]["train"]
+        if self.train_config["alpha"]:
+            self.alpha = self.train_config["alpha"]
         self.epochs = self.train_config["epochs"]
         self.save_checkpoint_interval = self.train_config["save_checkpoint_interval"]
         self.clip_grad_norm_value = self.train_config["clip_grad_norm_value"]

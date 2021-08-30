@@ -38,6 +38,7 @@ class Trainer(BaseTrainer):
             clean_mag, _ = mag_phase(clean_complex)
 
             ground_truth_IRM = build_ideal_ratio_mask(noisy_mag, clean_mag)  # [B, F, T, 1]
+
             with autocast(enabled=self.use_amp):
                 # [B, F, T] => [B, 1, F, T] => model => [B, 1, F, T] => [B, F, T, 1]
                 noisy_mag = noisy_mag.unsqueeze(1)
@@ -96,8 +97,8 @@ class Trainer(BaseTrainer):
 
             IRM = build_ideal_ratio_mask(noisy_mag, clean_mag)  # [B, F, T, 1]
 
-            noisy_mag = noisy_mag.unsqueeze(1)
-            RM = self.model(noisy_mag)
+            noisy_mag_input = noisy_mag.unsqueeze(1)
+            RM = self.model(noisy_mag_input)
             RM = RM.permute(0, 2, 3, 1)
 
             loss = self.loss_function(IRM, RM)
@@ -106,7 +107,7 @@ class Trainer(BaseTrainer):
             # enhanced_real = cRM[..., 0] * noisy_complex.real - cRM[..., 1] * noisy_complex.imag
             # enhanced_imag = cRM[..., 1] * noisy_complex.real + cRM[..., 0] * noisy_complex.imag
            
-            enhanced_mag = RM[..., 0] * noisy_mag[0, ...]
+            enhanced_mag = RM[..., 0] * noisy_mag
             enhanced_real = enhanced_mag * torch.cos(noisy_angle)
             enhanced_imag = enhanced_mag * torch.sin(noisy_angle)
             enhanced_complex = torch.stack((enhanced_real, enhanced_imag), dim=-1)

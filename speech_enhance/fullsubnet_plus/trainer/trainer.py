@@ -4,7 +4,7 @@ from torch.cuda.amp import autocast
 from tqdm import tqdm
 
 from audio_zen.acoustics.feature import mag_phase, drop_band
-from audio_zen.acoustics.mask import build_complex_ideal_ratio_mask, decompress_cIRM
+from audio_zen.acoustics.mask import build_complex_ideal_ratio_mask, decompress_cIRM, build_ideal_ratio_mask
 from audio_zen.trainer.base_trainer import BaseTrainer
 from utils.logger import log
 
@@ -34,7 +34,11 @@ class Trainer(BaseTrainer):
             noisy_complex = self.torch_stft(noisy)
             clean_complex = self.torch_stft(clean)
 
-            noisy_input = torch.stack([noisy_complex.real, noisy_complex.imag], dim=1)
+            # noisy_input = torch.stack([noisy_complex.real, noisy_complex.imag], dim=1)
+            noisy_mag, _ = mag_phase(noisy_complex)
+            clean_mag, _ = mag_phase(clean_complex)
+
+            ground_truth_IRM = build_ideal_ratio_mask(noisy_mag, clean_mag)  # [B, F, T, 1]
             ground_truth_cIRM = build_complex_ideal_ratio_mask(noisy_complex, clean_complex)  # [B, F, T, 2]
             ground_truth_cIRM = drop_band(
                 ground_truth_cIRM.permute(0, 3, 1, 2),  # [B, 2, F ,T]
@@ -42,10 +46,11 @@ class Trainer(BaseTrainer):
             ).permute(0, 2, 3, 1)
 
             with autocast(enabled=self.use_amp):
-                # [B, 2, F, T] => model => [B, 2, F, T] => [B, F, T, 2]
-                cRM = self.model(noisy_input)
+                # [B, F, T] => model => [B, 1, F, T], [B, 2, F, T] => [B, F, T, 1], [B, F, T, 2]
+                RM, cRM = self.model(noisy_complex)
+                RM = RM.permute(0, 2, 3, 1)
                 cRM = cRM.permute(0, 2, 3, 1)
-                loss = self.loss_function(ground_truth_cIRM, cRM)
+                loss = self.alpha * self.loss_function(ground_truth_cIRM, cRM) + (1 - self.alpha) * self.loss_function(ground_truth_IRM, RM)
 
             self.scaler.scale(loss).backward()
             self.scaler.unscale_(self.optimizer)
@@ -93,13 +98,19 @@ class Trainer(BaseTrainer):
             noisy_complex = self.torch_stft(noisy)
             clean_complex = self.torch_stft(clean)
 
-            noisy_input = torch.stack([noisy_complex.real, noisy_complex.imag], dim=1)
+            noisy_mag, _ = mag_phase(noisy_complex)
+            clean_mag, _ = mag_phase(clean_complex)
+
+            # noisy_input = torch.stack([noisy_complex.real, noisy_complex.imag], dim=1)
+
+            IRM = build_ideal_ratio_mask(noisy_mag, clean_mag)  # [B, F, T, 1]
             cIRM = build_complex_ideal_ratio_mask(noisy_complex, clean_complex)  # [B, F, T, 2]
 
-            cRM = self.model(noisy_input)
+            RM, cRM = self.model(noisy_complex)
+            RM = RM.permute(0, 2, 3, 1)
             cRM = cRM.permute(0, 2, 3, 1)
 
-            loss = self.loss_function(cIRM, cRM)
+            loss = self.alpha * self.loss_function(cIRM, cRM) + (1 - self.alpha) * self.loss_function(IRM, RM)
 
             cRM = decompress_cIRM(cRM)
 

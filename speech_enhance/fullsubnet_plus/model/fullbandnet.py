@@ -3,13 +3,13 @@ from torch.nn import functional
 
 from audio_zen.model.base_model import BaseModel
 from audio_zen.model.module.sequence_model import SequenceModel
-from audio_zen.model.module.attention_model import ChannelSELayer, ChannelECAlayer, ChannelCBAMLayer
+from audio_zen.model.module.attention_model import ChannelSELayer, ChannelECAlayer, ChannelCBAMLayer, ChannelTimeSeneseSELayer
 
 # for log
 from utils.logger import log
 print=log
 
-class Model(BaseModel):
+class FullBandNet(BaseModel):
     def __init__(
             self,
             num_freqs,
@@ -18,7 +18,9 @@ class Model(BaseModel):
             output_activate_function,
             look_ahead,
             channel_attention_model="SE",
+            subband_num=1,
             norm_type="offline_laplace_norm",
+            kersize=[3, 5, 10],
             weight_init=True,
     ):
         """
@@ -39,6 +41,8 @@ class Model(BaseModel):
                 self.channel_attention = ChannelECAlayer(channel=257)
             elif channel_attention_model == "CBAM":
                 self.channel_attention = ChannelCBAMLayer(num_channels=257)
+            elif channel_attention_model == "TSSE":
+                self.channel_attention = ChannelTimeSeneseSELayer(num_channels=self.num_channels, kersize=kersize)
             else:
                 raise NotImplementedError(f"Not implemented channel attention model {self.channel_attention}")
         self.fullband_model = SequenceModel(
@@ -78,21 +82,4 @@ class Model(BaseModel):
         return output[:, :, :, self.look_ahead:]
 
 
-if __name__ == "__main__":
-    import datetime
 
-    with torch.no_grad():
-        ipt = torch.rand(1, 1, 161, 100)
-        model = Model(
-            num_freqs=161,
-            look_ahead=1,
-            sequence_model="LSTM",
-            output_activate_function=None,
-            hidden_size=512,
-        )
-
-        a = datetime.datetime.now()
-        print(model(ipt).min())
-        print(model(ipt).shape)
-        b = datetime.datetime.now()
-        print(f"{b - a}")
