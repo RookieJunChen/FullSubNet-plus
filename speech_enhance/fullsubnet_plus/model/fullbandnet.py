@@ -42,7 +42,7 @@ class FullBandNet(BaseModel):
             elif channel_attention_model == "CBAM":
                 self.channel_attention = ChannelCBAMLayer(num_channels=257)
             elif channel_attention_model == "TSSE":
-                self.channel_attention = ChannelTimeSeneseSELayer(num_channels=self.num_channels, kersize=kersize)
+                self.channel_attention = ChannelTimeSeneseSELayer(num_channels=num_freqs, kersize=kersize)
             else:
                 raise NotImplementedError(f"Not implemented channel attention model {self.channel_attention}")
         self.fullband_model = SequenceModel(
