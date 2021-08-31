@@ -185,19 +185,19 @@ class Residual_Trainer(BaseTrainer):
             noisy_mag, _ = mag_phase(noisy_complex)
             clean_mag, _ = mag_phase(clean_complex)
 
-            ground_truth_IRM = build_ideal_ratio_mask(noisy_mag, clean_mag)  # [B, F, T, 1]
+            ground_truth_cIRM = build_complex_ideal_ratio_mask(noisy_complex, clean_complex)  # [B, F, T, 2]
 
             # [B, 2, F, T] => [B, F, T, 2]
             ground_truth_complex = torch.stack([clean_complex.real, clean_complex.imag], dim=1).permute(0, 2, 3, 1)
 
             with autocast(enabled=self.use_amp):
                 # [B, F, T] => model => [B, 1, F, T], [B, 2, F, T] => [B, F, T, 1], [B, F, T, 2]
-                RM, enhanced_complex = self.model(noisy_complex)
-                RM = RM.permute(0, 2, 3, 1)
+                cIRM, enhanced_complex = self.model(noisy_complex)
+                cIRM = cIRM.permute(0, 2, 3, 1)
                 enhanced_complex = enhanced_complex.permute(0, 2, 3, 1)
                 loss = self.alpha * self.loss_function(ground_truth_complex, enhanced_complex) + (
                             1 - self.alpha) * self.loss_function(
-                    ground_truth_IRM, RM)
+                    ground_truth_cIRM, cIRM)
 
             self.scaler.scale(loss).backward()
             self.scaler.unscale_(self.optimizer)
@@ -245,21 +245,18 @@ class Residual_Trainer(BaseTrainer):
             noisy_complex = self.torch_stft(noisy)
             clean_complex = self.torch_stft(clean)
 
-            noisy_mag, _ = mag_phase(noisy_complex)
-            clean_mag, _ = mag_phase(clean_complex)
-
             # noisy_input = torch.stack([noisy_complex.real, noisy_complex.imag], dim=1)
 
-            IRM = build_ideal_ratio_mask(noisy_mag, clean_mag)  # [B, F, T, 1]
+            cIRM = build_complex_ideal_ratio_mask(noisy_complex, clean_complex)  # [B, F, T, 2]
             # [B, 2, F, T] => [B, F, T, 2]
             ground_truth_complex = torch.stack([clean_complex.real, clean_complex.imag], dim=1).permute(0, 2, 3, 1)
 
-            RM, enhanced_complex = self.model(noisy_complex)
-            RM = RM.permute(0, 2, 3, 1)
+            cRM, enhanced_complex = self.model(noisy_complex)
+            cRM = cRM.permute(0, 2, 3, 1)
             enhanced_complex = enhanced_complex.permute(0, 2, 3, 1)
 
             loss = self.alpha * self.loss_function(ground_truth_complex, enhanced_complex) + (
-                        1 - self.alpha) * self.loss_function(IRM, RM)
+                        1 - self.alpha) * self.loss_function(cIRM, cRM)
 
             enhanced = self.torch_istft(enhanced_complex, length=noisy.size(-1))
 
