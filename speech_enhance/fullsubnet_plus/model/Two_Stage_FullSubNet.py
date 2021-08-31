@@ -202,8 +202,8 @@ class Two_Stage_Residual_FullSubNet_Large(BaseModel):
         batch_size, num_freqs, num_frames = noisy_complex.size()
         noisy_mag, noisy_angle = mag_phase(noisy_complex)  # [B, F, T]
         noisy_mag = noisy_mag.unsqueeze(1)  # [B, 1, F, T]
-        noisy_real = (noisy_complex.real).unsqueeze(1), self.num_groups_in_drop_band  # [B, 1, F, T]
-        noisy_imag = (noisy_complex.imag).unsqueeze(1), self.num_groups_in_drop_band  # [B, 1, F, T]
+        noisy_real = (noisy_complex.real).unsqueeze(1)  # [B, 1, F, T]
+        noisy_imag = (noisy_complex.imag).unsqueeze(1)  # [B, 1, F, T]
 
         if batch_size > 1:
             noisy_real = drop_band(noisy_real, self.num_groups_in_drop_band)
