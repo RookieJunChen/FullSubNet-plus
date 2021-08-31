@@ -166,7 +166,7 @@ class Two_Stage_Residual_FullSubNet_Large(BaseModel):
                                    bias=True)
 
         self.complex_model = Complex_FullSubNet(
-            num_freqs=num_freqs,
+            num_freqs=num_freqs // num_groups_in_drop_band,
             look_ahead=look_ahead,
             sequence_model=sequence_model,
             fb_num_neighbors=fb_num_neighbors,
