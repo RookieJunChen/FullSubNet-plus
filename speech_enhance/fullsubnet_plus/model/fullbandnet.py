@@ -3,7 +3,7 @@ from torch.nn import functional
 
 from audio_zen.model.base_model import BaseModel
 from audio_zen.model.module.sequence_model import SequenceModel
-from audio_zen.model.module.attention_model import ChannelSELayer, ChannelECAlayer, ChannelCBAMLayer, ChannelTimeSeneseSELayer
+from audio_zen.model.module.attention_model import ChannelSELayer, ChannelECAlayer, ChannelCBAMLayer, ChannelTimeSenseSELayer
 
 # for log
 from utils.logger import log
@@ -42,7 +42,7 @@ class FullBandNet(BaseModel):
             elif channel_attention_model == "CBAM":
                 self.channel_attention = ChannelCBAMLayer(num_channels=257)
             elif channel_attention_model == "TSSE":
-                self.channel_attention = ChannelTimeSeneseSELayer(num_channels=num_freqs, kersize=kersize)
+                self.channel_attention = ChannelTimeSenseSELayer(num_channels=num_freqs, kersize=kersize)
             else:
                 raise NotImplementedError(f"Not implemented channel attention model {self.channel_attention}")
         self.fullband_model = SequenceModel(
