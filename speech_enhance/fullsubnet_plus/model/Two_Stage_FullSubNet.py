@@ -155,14 +155,15 @@ class Two_Stage_Residual_FullSubNet_Large(BaseModel):
             sb_model_hidden_size=sb_model_hidden_size,
             channel_attention_model=channel_attention_model,
             norm_type=norm_type,
-            num_groups_in_drop_band=1,
+            num_groups_in_drop_band=2,
             output_size=2,
             subband_num=subband_num,
             kersize=kersize,
             weight_init=weight_init
         )
 
-        self.middle_fc = nn.Linear(num_freqs * 2, num_freqs, bias=True)
+        self.middle_fc = nn.Linear((num_freqs // num_groups_in_drop_band) * 2, num_freqs // num_groups_in_drop_band,
+                                   bias=True)
 
         self.complex_model = Complex_FullSubNet(
             num_freqs=num_freqs,
@@ -176,7 +177,7 @@ class Two_Stage_Residual_FullSubNet_Large(BaseModel):
             sb_model_hidden_size=sb_model_hidden_size,
             output_size=1,
             norm_type=norm_type,
-            num_groups_in_drop_band=1,
+            num_groups_in_drop_band=2,
             weight_init=weight_init
         )
 
@@ -198,10 +199,15 @@ class Two_Stage_Residual_FullSubNet_Large(BaseModel):
             return: [B, 2, F, T]
         """
         assert noisy_complex.dim() == 3
+        batch_size, num_freqs, num_frames = noisy_complex.size()
         noisy_mag, noisy_angle = mag_phase(noisy_complex)  # [B, F, T]
         noisy_mag = noisy_mag.unsqueeze(1)  # [B, 1, F, T]
-        noisy_real = (noisy_complex.real).unsqueeze(1)  # [B, 1, F, T]
-        noisy_imag = (noisy_complex.imag).unsqueeze(1)  # [B, 1, F, T]
+        noisy_real = (noisy_complex.real).unsqueeze(1), self.num_groups_in_drop_band  # [B, 1, F, T]
+        noisy_imag = (noisy_complex.imag).unsqueeze(1), self.num_groups_in_drop_band  # [B, 1, F, T]
+
+        if batch_size > 1:
+            noisy_real = drop_band(noisy_real, self.num_groups_in_drop_band)
+            noisy_imag = drop_band(noisy_imag, self.num_groups_in_drop_band)
 
         cIRM = self.amp_model(noisy_mag)  # cIRM: [B, 2, F, T]
         real_mask, imag_mask = torch.chunk(cIRM, chunks=2, dim=1)  # [B, 1, F, T]
