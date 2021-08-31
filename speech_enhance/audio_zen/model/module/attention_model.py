@@ -24,7 +24,7 @@ class ChannelSELayer(nn.Module):
 
     def forward(self, input_tensor):
         """
-        :param input_tensor: X, shape = (batch_size, num_channels, H, W)
+        :param input_tensor: X, shape = (batch_size, num_channels, T)
         :return: output tensor
         """
         # batch_size, num_channels, T = input_tensor.size()
@@ -40,7 +40,7 @@ class ChannelSELayer(nn.Module):
         return output_tensor
 
 
-class ChannelTimeSeneseSELayer(nn.Module):
+class ChannelTimeSenseSELayer(nn.Module):
     """
     Re-implementation of Squeeze-and-Excitation (SE) block described in:
         *Hu et al., Squeeze-and-Excitation Networks, arXiv:1709.01507*
@@ -51,7 +51,7 @@ class ChannelTimeSeneseSELayer(nn.Module):
         :param num_channels: No of input channels
         :param reduction_ratio: By how much should the num_channels should be reduced
         """
-        super(ChannelTimeSeneseSELayer, self).__init__()
+        super(ChannelTimeSenseSELayer, self).__init__()
         num_channels_reduced = num_channels // reduction_ratio
         self.reduction_ratio = reduction_ratio
         self.smallConv1d = nn.Sequential(
@@ -77,7 +77,7 @@ class ChannelTimeSeneseSELayer(nn.Module):
 
     def forward(self, input_tensor):
         """
-        :param input_tensor: X, shape = (batch_size, num_channels, H, W)
+        :param input_tensor: X, shape = (batch_size, num_channels, T)
         :return: output tensor
         """
         # batch_size, num_channels, T = input_tensor.size()
@@ -119,7 +119,7 @@ class ChannelCBAMLayer(nn.Module):
 
     def forward(self, input_tensor):
         """
-        :param input_tensor: X, shape = (batch_size, num_channels, H, W)
+        :param input_tensor: X, shape = (batch_size, num_channels, T)
         :return: output tensor
         """
         # batch_size, num_channels, T = input_tensor.size()
