@@ -268,7 +268,7 @@ class Two_Stage_AmpAttenion_FullSubNet(BaseModel):
             sb_model_hidden_size=sb_model_hidden_size,
             channel_attention_model=channel_attention_model,
             norm_type=norm_type,
-            num_groups_in_drop_band=1,
+            num_groups_in_drop_band=num_groups_in_drop_band,
             output_size=1,
             subband_num=subband_num,
             kersize=kersize,
@@ -287,7 +287,7 @@ class Two_Stage_AmpAttenion_FullSubNet(BaseModel):
             sb_model_hidden_size=sb_model_hidden_size,
             channel_attention_model=channel_attention_model,
             norm_type=norm_type,
-            num_groups_in_drop_band=1,
+            num_groups_in_drop_band=num_groups_in_drop_band,
             output_size=1,
             subband_num=subband_num,
             kersize=kersize,
@@ -332,6 +332,7 @@ class Two_Stage_AmpAttenion_FullSubNet(BaseModel):
 
         real_output = self.real_model(real_input)
         imag_output = self.imag_model(imag_input)
+
         cIRM = torch.cat([real_output, imag_output], dim=1)  # [B, 2, F, T]
 
         return IRM, cIRM
