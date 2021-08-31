@@ -168,7 +168,7 @@ class Two_Stage_FullSubNet_Small(BaseModel):
             sb_output_activate_function=sb_output_activate_function,
             fb_model_hidden_size=fb_model_hidden_size,
             sb_model_hidden_size=sb_model_hidden_size,
-            output_size=2,
+            output_size=1,
             norm_type=norm_type,
             num_groups_in_drop_band=num_groups_in_drop_band,
             weight_init=weight_init
@@ -264,7 +264,7 @@ class Two_Stage_without_fc_FullSubNet_Small(BaseModel):
             sb_output_activate_function=sb_output_activate_function,
             fb_model_hidden_size=fb_model_hidden_size,
             sb_model_hidden_size=sb_model_hidden_size,
-            output_size=2,
+            output_size=1,
             norm_type=norm_type,
             num_groups_in_drop_band=num_groups_in_drop_band,
             weight_init=weight_init
