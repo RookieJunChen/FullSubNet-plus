@@ -177,7 +177,7 @@ class Two_Stage_Residual_FullSubNet_Large(BaseModel):
             sb_model_hidden_size=sb_model_hidden_size,
             output_size=1,
             norm_type=norm_type,
-            num_groups_in_drop_band=2,
+            num_groups_in_drop_band=1,
             weight_init=weight_init
         )
 
