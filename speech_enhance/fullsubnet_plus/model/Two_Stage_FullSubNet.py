@@ -208,6 +208,7 @@ class Two_Stage_Residual_FullSubNet_Large(BaseModel):
 
         enhanced_real = real_mask * noisy_real - imag_mask * noisy_imag  # [B, 1, F, T]
         enhanced_imag = imag_mask * noisy_real + real_mask * noisy_imag  # [B, 1, F, T]
+        enhanced_complex = torch.cat([enhanced_real, enhanced_imag], dim=1)  # [B, 2, F, T]
 
         real_con = torch.cat([enhanced_real, noisy_real], dim=2)  # [B, 1, 2 * F, T]
         imag_con = torch.cat([enhanced_imag, noisy_imag], dim=2)  # [B, 1, 2 * F, T]
@@ -215,9 +216,8 @@ class Two_Stage_Residual_FullSubNet_Large(BaseModel):
         # [B, 1, 2 * F, T] => [B, 1, T, 2 * F] => model => [B, 1, 2 * F, T]
         real_input = (self.middle_fc(real_con.permute(0, 1, 3, 2))).permute(0, 1, 3, 2)
         imag_input = (self.middle_fc(imag_con.permute(0, 1, 3, 2))).permute(0, 1, 3, 2)
-
-        enhanced_complex = torch.cat([enhanced_real, enhanced_imag], dim=1)
         complex_input = torch.cat([real_input, imag_input], dim=1)  # [B, 2, F, T]
+
         output = self.complex_model(complex_input) + enhanced_complex
 
         return cIRM, output
