@@ -22,7 +22,7 @@ class Complex_FullSubNet(BaseModel):
                  sb_output_activate_function,
                  fb_model_hidden_size,
                  sb_model_hidden_size,
-                 output_size=2,
+                 output_size=1,
                  norm_type="offline_laplace_norm",
                  num_groups_in_drop_band=2,
                  weight_init=True,
