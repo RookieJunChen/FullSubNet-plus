@@ -163,7 +163,7 @@ class Two_Stage_Residual_FullSubNet_Large(BaseModel):
         )
 
 
-        self.middle_fc = nn.Linear(num_freqs* 2, num_freqs, bias=True)
+        self.middle_fc = nn.Linear(num_freqs * 2, num_freqs, bias=True)
 
         self.complex_model = Complex_FullSubNet(
             num_freqs=num_freqs,
