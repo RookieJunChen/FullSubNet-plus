@@ -127,6 +127,8 @@ class FullSub_Att_Complex_FullSubNet(BaseModel):
         """
         assert noisy_mag.dim() == 4
         noisy_mag = functional.pad(noisy_mag, [0, self.look_ahead])  # Pad the look ahead
+        noisy_real = functional.pad(noisy_real, [0, self.look_ahead])  # Pad the look ahead
+        noisy_imag = functional.pad(noisy_imag, [0, self.look_ahead])  # Pad the look ahead
         batch_size, num_channels, num_freqs, num_frames = noisy_mag.size()
         assert num_channels == 1, f"{self.__class__.__name__} takes the mag feature as inputs."
 
@@ -186,7 +188,7 @@ class FullSub_Att_Complex_FullSubNet(BaseModel):
 
         sb_input = sb_input.reshape(
             batch_size * num_freqs,
-            (self.sb_num_neighbors * 2 + 1) + (self.fb_num_neighbors * 2 + 1),
+            (self.sb_num_neighbors * 2 + 1) + 3 * (self.fb_num_neighbors * 2 + 1),
             num_frames
         )
 

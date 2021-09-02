@@ -394,7 +394,9 @@ class Trainer_Finetune(BaseTrainer):
             cIRM = build_complex_ideal_ratio_mask(noisy_complex, clean_complex)  # [B, F, T, 2]
 
             noisy_mag = noisy_mag.unsqueeze(1)
-            cRM = self.model(noisy_mag)
+            noisy_real = (noisy_complex.real).unsqueeze(1)
+            noisy_imag = (noisy_complex.imag).unsqueeze(1)
+            cRM = self.model(noisy_mag, noisy_real, noisy_imag)
             cRM = cRM.permute(0, 2, 3, 1)
 
             loss = self.loss_function(cIRM, cRM)
