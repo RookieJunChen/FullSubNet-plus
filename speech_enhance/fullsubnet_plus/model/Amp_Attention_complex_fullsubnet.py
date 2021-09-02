@@ -147,11 +147,11 @@ class FullSub_Att_Complex_FullSubNet(BaseModel):
 
         # Fullband real model
         fbr_input = self.norm(noisy_real).reshape(batch_size, num_channels * num_freqs, num_frames)
-        fbr_output = self.fb_model(fbr_input).reshape(batch_size, 1, num_freqs, num_frames)
+        fbr_output = self.fb_model_real(fbr_input).reshape(batch_size, 1, num_freqs, num_frames)
 
         # Fullband imag model
         fbi_input = self.norm(noisy_imag).reshape(batch_size, num_channels * num_freqs, num_frames)
-        fbi_output = self.fb_model(fbi_input).reshape(batch_size, 1, num_freqs, num_frames)
+        fbi_output = self.fb_model_imag(fbi_input).reshape(batch_size, 1, num_freqs, num_frames)
 
         # Unfold the output of the fullband model, [B, N=F, C, F_f, T]
         fb_output_unfolded = self.unfold(fb_output, num_neighbor=self.fb_num_neighbors)
