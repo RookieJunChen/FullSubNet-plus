@@ -424,7 +424,7 @@ class Two_Stage_FullSubNet_Small(BaseModel):
         real_con = torch.cat([enhanced_real, noisy_real], dim=2)  # [B, 1, 2 * F, T]
         imag_con = torch.cat([enhanced_imag, noisy_imag], dim=2)  # [B, 1, 2 * F, T]
 
-        # [B, 1, 2 * F, T] => [B, 1, T, 2 * F] => model => [B, 1, 2 * F, T]
+        # [B, 1, 2 * F, T] => [B, 1, T, 2 * F] => model => [B, 1, F, T]
         real_input = (self.middle_fc(real_con.permute(0, 1, 3, 2))).permute(0, 1, 3, 2)
         imag_input = (self.middle_fc(imag_con.permute(0, 1, 3, 2))).permute(0, 1, 3, 2)
 
@@ -747,8 +747,8 @@ class Two_Stage_AmpAttenion_without_fc_FullSubNet(BaseModel):
         noisy_mag, noisy_angle = mag_phase(noisy_complex)  # [B, F, T]
         noisy_mag = noisy_mag.unsqueeze(1)  # [B, 1, F, T]
         noisy_angle = noisy_angle.unsqueeze(1)  # [B, 1, F, T]
-        noisy_real = (noisy_complex.real).unsqueeze(1)  # [B, 1, F, T]
-        noisy_imag = (noisy_complex.imag).unsqueeze(1)  # [B, 1, F, T]
+        # noisy_real = (noisy_complex.real).unsqueeze(1)  # [B, 1, F, T]
+        # noisy_imag = (noisy_complex.imag).unsqueeze(1)  # [B, 1, F, T]
 
         IRM = self.amp_model(noisy_mag)  # IRM: [B, 1, F, T]
         enhanced_mag = IRM * noisy_mag  # [B, 1, F, T]
