@@ -88,7 +88,79 @@ class ChannelTimeSenseSELayer(nn.Module):
 
         feature = torch.cat([small_feature, middle_feature, large_feature], dim=2)  # [B, num_channels, 3]
         squeeze_tensor = self.feature_concate_fc(feature)[..., 0]  # [B, num_channels]
-        
+
+        # channel excitation
+        fc_out_1 = self.relu(self.fc1(squeeze_tensor))
+        fc_out_2 = self.sigmoid(self.fc2(fc_out_1))
+
+        a, b = squeeze_tensor.size()
+        output_tensor = torch.mul(input_tensor, fc_out_2.view(a, b, 1))
+        return output_tensor
+
+
+class Conv_Attention_Block(nn.Module):
+    def __init__(
+            self,
+            num_channels,
+            kersize=[3, 5, 10]
+    ):
+        """
+        Args:
+            num_channels: No of input channels
+            kernel_size: Convolution kernel size
+        """
+        super().__init__()
+        self.conv1d = nn.Conv1d(num_channels, num_channels, kernel_size=kersize, groups=num_channels)
+        self.attention = SelfAttentionlayer(amp_dim=num_channels, att_dim=num_channels)
+        self.avgpool = nn.AdaptiveAvgPool1d(1)
+        self.active_funtion = nn.ReLU(inplace=True)
+
+    def forward(self, input):
+        input = self.conv1d(input)  # [B, num_channels, T]
+        input = self.attention(input.permute(0, 2, 1))  # [B, T, num_channels]
+        output = self.active_funtion(self.avgpool(input.permute(0, 2, 1)))  # [B, num_channels, 1]
+        return output
+
+
+class ChannelTimeSenseAttentionSELayer(nn.Module):
+    """
+    Re-implementation of Squeeze-and-Excitation (SE) block described in:
+        *Hu et al., Squeeze-and-Excitation Networks, arXiv:1709.01507*
+    """
+
+    def __init__(self, num_channels, reduction_ratio=2, kersize=[3, 5, 10]):
+        """
+        :param num_channels: No of input channels
+        :param reduction_ratio: By how much should the num_channels should be reduced
+        """
+        super(ChannelTimeSenseAttentionSELayer, self).__init__()
+        num_channels_reduced = num_channels // reduction_ratio
+        self.reduction_ratio = reduction_ratio
+
+        self.smallConv1d = Conv_Attention_Block(num_channels=num_channels, kersize=kersize[0])
+        self.middleConv1d = Conv_Attention_Block(num_channels=num_channels, kersize=kersize[1])
+        self.largeConv1d = Conv_Attention_Block(num_channels=num_channels,kersize=kersize[2])
+
+        self.feature_concate_fc = nn.Linear(3, 1, bias=True)
+        self.fc1 = nn.Linear(num_channels, num_channels_reduced, bias=True)
+        self.fc2 = nn.Linear(num_channels_reduced, num_channels, bias=True)
+        self.relu = nn.ReLU()
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, input_tensor):
+        """
+        :param input_tensor: X, shape = (batch_size, num_channels, T)
+        :return: output tensor
+        """
+        # batch_size, num_channels, T = input_tensor.size()
+        # Extracting multi-scale information in the time dimension
+        small_feature = self.smallConv1d(input_tensor)
+        middle_feature = self.middleConv1d(input_tensor)
+        large_feature = self.largeConv1d(input_tensor)
+
+        feature = torch.cat([small_feature, middle_feature, large_feature], dim=2)  # [B, num_channels, 3]
+        squeeze_tensor = self.feature_concate_fc(feature)[..., 0]  # [B, num_channels]
+
         # channel excitation
         fc_out_1 = self.relu(self.fc1(squeeze_tensor))
         fc_out_2 = self.sigmoid(self.fc2(fc_out_1))
@@ -184,7 +256,7 @@ class SelfAttentionlayer(nn.Module):
         v = self.v_linear(v)
         output = self.attention(q, k, v)
         output = self.out(output)
-        return output
+        return output  # [B, T, F]
 
     def attention(self, q, k, v):
         scores = torch.matmul(q, k.transpose(-2, -1)) / math.sqrt(self.d_k)

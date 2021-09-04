@@ -5,7 +5,7 @@ from audio_zen.acoustics.feature import drop_band
 from audio_zen.model.base_model import BaseModel
 from audio_zen.model.module.sequence_model import SequenceModel
 from audio_zen.model.module.attention_model import ChannelSELayer, ChannelECAlayer, ChannelCBAMLayer, \
-    ChannelTimeSenseSELayer
+    ChannelTimeSenseSELayer, ChannelTimeSenseAttentionSELayer
 
 # for log
 from utils.logger import log
@@ -58,6 +58,8 @@ class FullSub_Att_Complex_FullSubNet(BaseModel):
                 self.channel_attention = ChannelCBAMLayer(num_channels=self.num_channels)
             elif channel_attention_model == "TSSE":
                 self.channel_attention = ChannelTimeSenseSELayer(num_channels=self.num_channels, kersize=kersize)
+            elif channel_attention_model == "TSASE":
+                self.channel_attention = ChannelTimeSenseAttentionSELayer(num_channels=self.num_channels, kersize=kersize)
             else:
                 raise NotImplementedError(f"Not implemented channel attention model {self.channel_attention}")
 
@@ -574,6 +576,7 @@ class FullSub_Att_ComplexAll_FullSubNet(BaseModel):
                                                         num_frames)
         noisy_imag_unfolded = noisy_imag_unfolded.permute(0, 1, 3, 2)
 
+        # [B, F, T, 3 * F_s] = > [B, F, T, F_s] = > [B, F, F_s, T]
         subband_union = (self.middle_fc(torch.cat([noisy_mag_unfolded, noisy_real_unfolded, noisy_imag_unfolded], dim=-1))).permute(0, 1, 3, 2)
 
         # Concatenation, [B, F, (F_s + 3 * F_f), T]
