@@ -116,8 +116,8 @@ class Conv_Attention_Block(nn.Module):
         self.active_funtion = nn.ReLU(inplace=True)
 
     def forward(self, input):
-        input = self.conv1d(input)  # [B, num_channels, T]
-        input = self.attention(input.permute(0, 2, 1))  # [B, T, num_channels]
+        input = (self.conv1d(input)).permute(0, 2, 1)  # [B, num_channels, T]  =>  [B, T, num_channels]
+        input = self.attention(input, input, input)  # [B, T, num_channels]
         output = self.active_funtion(self.avgpool(input.permute(0, 2, 1)))  # [B, num_channels, 1]
         return output
 
