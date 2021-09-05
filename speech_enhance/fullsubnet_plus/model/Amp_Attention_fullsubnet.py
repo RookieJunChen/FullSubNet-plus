@@ -5,7 +5,7 @@ from audio_zen.acoustics.feature import drop_band
 from audio_zen.model.base_model import BaseModel
 from audio_zen.model.module.sequence_model import SequenceModel
 from audio_zen.model.module.attention_model import ChannelSELayer, ChannelECAlayer, ChannelCBAMLayer, \
-    ChannelTimeSenseSELayer, ChannelTimeSenseAttentionSELayer
+    ChannelTimeSenseSELayer, ChannelTimeSenseAttentionSELayer, ChannelDeepTimeSenseSELayer
 
 # for log
 from utils.logger import log
@@ -60,6 +60,8 @@ class Full_Att_FullSubNet(BaseModel):
                 self.channel_attention = ChannelTimeSenseSELayer(num_channels=self.num_channels, kersize=kersize)
             elif channel_attention_model == "TSASE":
                 self.channel_attention = ChannelTimeSenseAttentionSELayer(num_channels=self.num_channels, kersize=kersize)
+            elif channel_attention_model == "DTSSE":
+                self.channel_attention = ChannelDeepTimeSenseSELayer(num_channels=self.num_channels, kersize=kersize)
             else:
                 raise NotImplementedError(f"Not implemented channel attention model {self.channel_attention}")
 
@@ -205,6 +207,8 @@ class FullSub_Att_FullSubNet(BaseModel):
                 self.channel_attention = ChannelTimeSenseSELayer(num_channels=self.num_channels, kersize=kersize)
             elif channel_attention_model == "TSASE":
                 self.channel_attention = ChannelTimeSenseAttentionSELayer(num_channels=self.num_channels, kersize=kersize)
+            elif channel_attention_model == "DTSSE":
+                self.channel_attention = ChannelDeepTimeSenseSELayer(num_channels=self.num_channels, kersize=kersize)
             else:
                 raise NotImplementedError(f"Not implemented channel attention model {self.channel_attention}")
 

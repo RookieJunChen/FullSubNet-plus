@@ -98,6 +98,71 @@ class ChannelTimeSenseSELayer(nn.Module):
         return output_tensor
 
 
+class ChannelDeepTimeSenseSELayer(nn.Module):
+    """
+    Re-implementation of Squeeze-and-Excitation (SE) block described in:
+        *Hu et al., Squeeze-and-Excitation Networks, arXiv:1709.01507*
+    """
+
+    def __init__(self, num_channels, reduction_ratio=2, kersize=[3, 5, 10]):
+        """
+        :param num_channels: No of input channels
+        :param reduction_ratio: By how much should the num_channels should be reduced
+        """
+        super(ChannelDeepTimeSenseSELayer, self).__init__()
+        num_channels_reduced = num_channels // reduction_ratio
+        self.reduction_ratio = reduction_ratio
+        self.smallConv1d = nn.Sequential(
+            nn.Conv1d(num_channels, num_channels, kernel_size=kersize[0], groups=num_channels),  # [B, num_channels, T]
+            nn.ReLU(inplace=True),
+            nn.Conv1d(num_channels, num_channels, kernel_size=kersize[0], groups=num_channels),
+            nn.ReLU(inplace=True),
+            nn.AdaptiveAvgPool1d(1)  # [B, num_channels, 1]
+        )
+        self.middleConv1d = nn.Sequential(
+            nn.Conv1d(num_channels, num_channels, kernel_size=kersize[1], groups=num_channels),  # [B, num_channels, T]
+            nn.ReLU(inplace=True),
+            nn.Conv1d(num_channels, num_channels, kernel_size=kersize[1], groups=num_channels),  # [B, num_channels, T]
+            nn.ReLU(inplace=True),
+            nn.AdaptiveAvgPool1d(1)  # [B, num_channels, 1]
+        )
+        self.largeConv1d = nn.Sequential(
+            nn.Conv1d(num_channels, num_channels, kernel_size=kersize[2], groups=num_channels),  # [B, num_channels, T]
+            nn.ReLU(inplace=True),
+            nn.Conv1d(num_channels, num_channels, kernel_size=kersize[2], groups=num_channels),  # [B, num_channels, T]
+            nn.ReLU(inplace=True),
+            nn.AdaptiveAvgPool1d(1)  # [B, num_channels, 1]
+
+        )
+        self.feature_concate_fc = nn.Linear(3, 1, bias=True)
+        self.fc1 = nn.Linear(num_channels, num_channels_reduced, bias=True)
+        self.fc2 = nn.Linear(num_channels_reduced, num_channels, bias=True)
+        self.relu = nn.ReLU()
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, input_tensor):
+        """
+        :param input_tensor: X, shape = (batch_size, num_channels, T)
+        :return: output tensor
+        """
+        # batch_size, num_channels, T = input_tensor.size()
+        # Extracting multi-scale information in the time dimension
+        small_feature = self.smallConv1d(input_tensor)
+        middle_feature = self.middleConv1d(input_tensor)
+        large_feature = self.largeConv1d(input_tensor)
+
+        feature = torch.cat([small_feature, middle_feature, large_feature], dim=2)  # [B, num_channels, 3]
+        squeeze_tensor = self.feature_concate_fc(feature)[..., 0]  # [B, num_channels]
+
+        # channel excitation
+        fc_out_1 = self.relu(self.fc1(squeeze_tensor))
+        fc_out_2 = self.sigmoid(self.fc2(fc_out_1))
+
+        a, b = squeeze_tensor.size()
+        output_tensor = torch.mul(input_tensor, fc_out_2.view(a, b, 1))
+        return output_tensor
+
+
 class Conv_Attention_Block(nn.Module):
     def __init__(
             self,
@@ -139,7 +204,7 @@ class ChannelTimeSenseAttentionSELayer(nn.Module):
 
         self.smallConv1d = Conv_Attention_Block(num_channels=num_channels, kersize=kersize[0])
         self.middleConv1d = Conv_Attention_Block(num_channels=num_channels, kersize=kersize[1])
-        self.largeConv1d = Conv_Attention_Block(num_channels=num_channels,kersize=kersize[2])
+        self.largeConv1d = Conv_Attention_Block(num_channels=num_channels, kersize=kersize[2])
 
         self.feature_concate_fc = nn.Linear(3, 1, bias=True)
         self.fc1 = nn.Linear(num_channels, num_channels_reduced, bias=True)
