@@ -109,7 +109,7 @@ class ChannelTimeSenseSEWeightLayer(nn.Module):
         :param num_channels: No of input channels
         :param reduction_ratio: By how much should the num_channels should be reduced
         """
-        super(ChannelTimeSenseSELayer, self).__init__()
+        super(ChannelTimeSenseSEWeightLayer, self).__init__()
         num_channels_reduced = num_channels // reduction_ratio
         self.reduction_ratio = reduction_ratio
         self.smallConv1d = nn.Sequential(
