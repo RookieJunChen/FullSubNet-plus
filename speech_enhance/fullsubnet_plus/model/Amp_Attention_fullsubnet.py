@@ -262,6 +262,7 @@ class Sub_Att_FullSubNet(BaseModel):
         if self.subband_num == 1:
             attentioned_mag = self.norm(noisy_mag).reshape(batch_size, num_channels * num_freqs, num_frames)  # [B, F, T]
             attentioned_mag = self.channel_attention(attentioned_mag)
+
         else:
             pad_num = self.subband_num - num_freqs % self.subband_num
             # Fullband model
@@ -280,7 +281,8 @@ class Sub_Att_FullSubNet(BaseModel):
                                                         num_frames)
 
         # Unfold attention noisy input, [B, N=F, C, F_s, T]
-        noisy_mag_unfolded = self.unfold(attentioned_mag, num_neighbor=self.sb_num_neighbors)
+        noisy_mag_unfolded = self.unfold(attentioned_mag.reshape(batch_size, 1, num_freqs, num_frames),
+                                         num_neighbor=self.sb_num_neighbors)
         noisy_mag_unfolded = noisy_mag_unfolded.reshape(batch_size, num_freqs, self.sb_num_neighbors * 2 + 1,
                                                         num_frames)
 
