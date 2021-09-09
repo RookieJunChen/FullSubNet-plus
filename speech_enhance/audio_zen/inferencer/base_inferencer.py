@@ -28,7 +28,11 @@ class BaseInferencer:
         print("Loading inference dataset...")
         self.dataloader = self._load_dataloader(config["dataset"])
         print("Loading model...")
+
         self.model, epoch = self._load_model(config["model"], checkpoint_path, self.device)
+        # self.model = self._load_model(config["model"], checkpoint_path, self.device)
+        # epoch = 64
+
         self.inference_config = config["inferencer"]
 
         self.enhanced_dir = root_dir / f"enhanced_{str(epoch).zfill(4)}"
@@ -94,6 +98,8 @@ class BaseInferencer:
     def _load_model(model_config, checkpoint_path, device):
         model = initialize_module(model_config["path"], args=model_config["args"], initialize=True)
         model_checkpoint = torch.load(checkpoint_path, map_location="cpu")
+
+        # model_static_dict = model_checkpoint
         model_static_dict = model_checkpoint["model"]
         epoch = model_checkpoint["epoch"]
         print(f"当前正在处理 tar 格式的模型断点，其 epoch 为：{epoch}.")
@@ -102,6 +108,7 @@ class BaseInferencer:
         model.to(device)
         model.eval()
         return model, model_checkpoint["epoch"]
+        # return model
 
     @torch.no_grad()
     def multi_channel_mag_to_mag(self, noisy, inference_args=None):
