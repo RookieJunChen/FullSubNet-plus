@@ -152,6 +152,17 @@ def compute_metric(reference_wav_paths, estimated_wav_paths, sr, metric_type="SI
     )
     return metrics_result_store
 
+def takeSecond(elem):
+    return elem[1]
+
+def make_rank(the_list):
+    the_list.sort(key=takeSecond, reverse=True)
+
+def write_to_txt(filename, total_list):
+    with open(filename, 'a+') as temp_file:
+        for i1, sisdr in total_list:
+            string = i1 + ": " + str(sisdr) + '\n'
+            temp_file.write(string)
 
 def main(args):
     sr = args.sr
@@ -162,9 +173,9 @@ def main(args):
     # 通过指定的 scp 文件或目录获取全部的 wav 样本
     reference_wav_paths, estimated_wav_paths = pre_processing(args.estimated, args.reference, specific_dataset)
 
-    if export_dir:
-        export_dir = Path(export_dir).expanduser().absolute()
-        prepare_empty_dir([export_dir])
+    # if export_dir:
+    #     export_dir = Path(export_dir).expanduser().absolute()
+    #     prepare_empty_dir([export_dir])
 
     print(f"=== {args.estimated} === {args.reference} ===")
     for metric_type in metric_types.split(","):
@@ -179,16 +190,18 @@ def main(args):
 
         # Export result
         if export_dir:
-            import tablib
+            make_rank(metrics_result_store)
+            write_to_txt(export_dir, metrics_result_store)
+            # import tablib
 
-            export_path = export_dir / f"{metric_type}.xlsx"
-            print(f"Export result to {export_path}")
+            # export_path = export_dir / f"{metric_type}.xlsx"
+            # print(f"Export result to {export_path}")
 
-            headers = ("Speech", f"{metric_type}")
-            metric_seq = [[basename, metric_value] for basename, metric_value in metrics_result_store]
-            data = tablib.Dataset(*metric_seq, headers=headers)
-            with open(export_path.as_posix(), "wb") as f:
-                f.write(data.export("xlsx"))
+            # headers = ("Speech", f"{metric_type}")
+            # metric_seq = [[basename, metric_value] for basename, metric_value in metrics_result_store]
+            # data = tablib.Dataset(*metric_seq, headers=headers)
+            # with open(export_path.as_posix(), "wb") as f:
+            #     f.write(data.export("xlsx"))
 
 
 if __name__ == '__main__':
