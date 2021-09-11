@@ -346,7 +346,7 @@ class FullSub_Att_FullSubNet(BaseModel):
         #     self.num_channels = num_freqs
         # else:
         #     self.num_channels = num_freqs // subband_num + 1
-        self.num_channels = num_freqs
+        self.num_channels = num_freqs + (subband_num - num_freqs % subband_num)
 
         if channel_attention_model:
             if channel_attention_model == "SE":
