@@ -355,7 +355,8 @@ class FullSub_Att_FullSubNet(BaseModel):
             elif channel_attention_model == "CBAM":
                 self.channel_attention = ChannelCBAMLayer(num_channels=self.num_channels)
             elif channel_attention_model == "TSSE":
-                self.channel_attention = ChannelTimeSenseSELayer(num_channels=self.num_channels, kersize=kersize)
+                self.channel_attention = ChannelTimeSenseSELayer(num_channels=self.num_channels, kersize=kersize,
+                                                                 subband_num=subband_num)
             elif channel_attention_model == "TSASE":
                 self.channel_attention = ChannelTimeSenseAttentionSELayer(num_channels=self.num_channels, kersize=kersize)
             elif channel_attention_model == "DTSSE":

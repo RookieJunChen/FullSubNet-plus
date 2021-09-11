@@ -46,7 +46,7 @@ class ChannelTimeSenseSELayer(nn.Module):
         *Hu et al., Squeeze-and-Excitation Networks, arXiv:1709.01507*
     """
 
-    def __init__(self, num_channels, reduction_ratio=2, kersize=[3, 5, 10]):
+    def __init__(self, num_channels, reduction_ratio=2, kersize=[3, 5, 10], subband_num=1):
         """
         :param num_channels: No of input channels
         :param reduction_ratio: By how much should the num_channels should be reduced
@@ -55,17 +55,17 @@ class ChannelTimeSenseSELayer(nn.Module):
         num_channels_reduced = num_channels // reduction_ratio
         self.reduction_ratio = reduction_ratio
         self.smallConv1d = nn.Sequential(
-            nn.Conv1d(num_channels, num_channels, kernel_size=kersize[0], groups=num_channels),  # [B, num_channels, T]
+            nn.Conv1d(num_channels, num_channels, kernel_size=kersize[0], groups=num_channels // subband_num),  # [B, num_channels, T]
             nn.AdaptiveAvgPool1d(1),  # [B, num_channels, 1]
             nn.ReLU(inplace=True)
         )
         self.middleConv1d = nn.Sequential(
-            nn.Conv1d(num_channels, num_channels, kernel_size=kersize[1], groups=num_channels),  # [B, num_channels, T]
+            nn.Conv1d(num_channels, num_channels, kernel_size=kersize[1], groups=num_channels // subband_num),  # [B, num_channels, T]
             nn.AdaptiveAvgPool1d(1),  # [B, num_channels, 1]
             nn.ReLU(inplace=True)
         )
         self.largeConv1d = nn.Sequential(
-            nn.Conv1d(num_channels, num_channels, kernel_size=kersize[2], groups=num_channels),  # [B, num_channels, T]
+            nn.Conv1d(num_channels, num_channels, kernel_size=kersize[2], groups=num_channels // subband_num),  # [B, num_channels, T]
             nn.AdaptiveAvgPool1d(1),  # [B, num_channels, 1]
             nn.ReLU(inplace=True)
         )
