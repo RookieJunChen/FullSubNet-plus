@@ -342,10 +342,10 @@ class FullSub_Att_FullSubNet(BaseModel):
         super().__init__()
         assert sequence_model in ("GRU", "LSTM"), f"{self.__class__.__name__} only support GRU and LSTM."
 
-        if subband_num == 1:
-            self.num_channels = num_freqs
-        else:
-            self.num_channels = num_freqs // subband_num + 1
+        # if subband_num == 1:
+        #     self.num_channels = num_freqs
+        # else:
+        #     self.num_channels = num_freqs // subband_num + 1
 
         if channel_attention_model:
             if channel_attention_model == "SE":
@@ -411,17 +411,20 @@ class FullSub_Att_FullSubNet(BaseModel):
         batch_size, num_channels, num_freqs, num_frames = noisy_mag.size()
         assert num_channels == 1, f"{self.__class__.__name__} takes the mag feature as inputs."
 
-        if self.subband_num == 1:
-            fb_input = self.norm(noisy_mag).reshape(batch_size, num_channels * num_freqs, num_frames)  # [B, F, T]
-            fb_input = self.channel_attention(fb_input)
-        else:
-            pad_num = self.subband_num - num_freqs % self.subband_num
-            # Fullband model
-            fb_input = functional.pad(self.norm(noisy_mag), [0, 0, 0, pad_num], mode="reflect")
-            fb_input = fb_input.reshape(batch_size, (num_freqs + pad_num) // self.subband_num,
-                                        num_frames * self.subband_num)  # [B, subband_num, T]
-            fb_input = self.channel_attention(fb_input)
-            fb_input = fb_input.reshape(batch_size, num_channels * (num_freqs + pad_num), num_frames)[:, :num_freqs, :]
+        # if self.subband_num == 1:
+        #     fb_input = self.norm(noisy_mag).reshape(batch_size, num_channels * num_freqs, num_frames)  # [B, F, T]
+        #     fb_input = self.channel_attention(fb_input)
+        # else:
+        #     pad_num = self.subband_num - num_freqs % self.subband_num
+        #     # Fullband model
+        #     fb_input = functional.pad(self.norm(noisy_mag), [0, 0, 0, pad_num], mode="reflect")
+        #     fb_input = fb_input.reshape(batch_size, (num_freqs + pad_num) // self.subband_num,
+        #                                 num_frames * self.subband_num)  # [B, subband_num, T]
+        #     fb_input = self.channel_attention(fb_input)
+        #     fb_input = fb_input.reshape(batch_size, num_channels * (num_freqs + pad_num), num_frames)[:, :num_freqs, :]
+
+        fb_input = self.norm(noisy_mag).reshape(batch_size, num_channels * num_freqs, num_frames)  # [B, F, T]
+        fb_input = self.channel_attention(fb_input)
         fb_output = self.fb_model(fb_input).reshape(batch_size, 1, num_freqs, num_frames)
 
         # Unfold the output of the fullband model, [B, N=F, C, F_f, T]
