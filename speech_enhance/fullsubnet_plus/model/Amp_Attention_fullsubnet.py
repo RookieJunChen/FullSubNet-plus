@@ -426,8 +426,9 @@ class FullSub_Att_FullSubNet(BaseModel):
 
         pad_num = self.subband_num - num_freqs % self.subband_num
         fb_input = functional.pad(self.norm(noisy_mag), [0, 0, 0, pad_num], mode="reflect")
-        fb_input = self.norm(fb_input).reshape(batch_size, num_channels * num_freqs, num_frames)  # [B, F, T]
+        fb_input = self.norm(fb_input).reshape(batch_size, num_channels * (num_freqs + pad_num), num_frames)  # [B, F, T]
         fb_input = self.channel_attention(fb_input)
+        fb_input = fb_input.reshape(batch_size, num_channels * (num_freqs + pad_num), num_frames)[:, :num_freqs, :]
 
 
         fb_output = self.fb_model(fb_input).reshape(batch_size, 1, num_freqs, num_frames)
