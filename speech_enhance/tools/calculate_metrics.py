@@ -159,7 +159,7 @@ def make_rank(the_list):
     the_list.sort(key=takeSecond, reverse=True)
 
 def write_to_txt(filename, total_list):
-    with open(filename, 'a+') as temp_file:
+    with open(filename, 'w+') as temp_file:
         for i1, sisdr in total_list:
             string = i1 + ": " + str(sisdr) + '\n'
             temp_file.write(string)
@@ -191,7 +191,7 @@ def main(args):
         # Export result
         if export_dir:
             make_rank(metrics_result_store)
-            write_to_txt(export_dir, metrics_result_store)
+            write_to_txt(export_dir + str(metric_type) + ".txt", metrics_result_store)
             # import tablib
 
             # export_path = export_dir / f"{metric_type}.xlsx"
