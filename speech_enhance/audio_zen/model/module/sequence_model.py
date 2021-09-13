@@ -49,7 +49,12 @@ class SequenceModel(nn.Module):
                 TCNBlock(in_channels=input_size, out_channels=input_size),
                 TCNBlock(in_channels=input_size, out_channels=input_size),
                 TCNBlock(in_channels=input_size, out_channels=input_size),
-                TCNBlock(in_channels=input_size, out_channels=output_size)
+                TCNBlock(in_channels=input_size, out_channels=input_size),
+                TCNBlock(in_channels=input_size, out_channels=input_size),
+                TCNBlock(in_channels=input_size, out_channels=input_size),
+                TCNBlock(in_channels=input_size, out_channels=input_size),
+                TCNBlock(in_channels=input_size, out_channels=output_size),
+                nn.ReLU()
             )
         else:
             raise NotImplementedError(f"Not implemented {sequence_model}")
