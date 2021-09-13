@@ -64,6 +64,34 @@ class CausalTransConvBlock(nn.Module):
         return x
 
 
+class TCNBlock(nn.Module):
+    def __init__(self, in_channels=257, hidden_channel=512, out_channels=257, kernel_size=3, dilation=1,
+                 use_skip_connection=True):
+        super().__init__()
+        padding = (dilation * (kernel_size - 1)) // 2  # if not causal else (
+        # dilation * (kernel_size - 1))
+        self.tcn_block = nn.Sequential(
+            nn.Conv1d(in_channels, hidden_channel, 1),
+            nn.PReLU(),
+            nn.GroupNorm(1, hidden_channel, eps=1e-8),
+            nn.Conv1d(hidden_channel, hidden_channel, kernel_size=kernel_size, stride=1,
+                      groups=hidden_channel, padding=padding, dilation=dilation, bias=True),
+            nn.PReLU(),
+            nn.GroupNorm(1, hidden_channel, eps=1e-8),
+            nn.Conv1d(hidden_channel, out_channels, 1)
+        )
+        self.use_skip_connection = use_skip_connection
+
+    def forward(self, x):
+        """
+            x: [channels, T]
+        """
+        if self.use_skip_connection:
+            return x + self.tcn_block(x)
+        else:
+            return self.tcn_block(x)
+
+
 if __name__ == '__main__':
     a = torch.rand(2, 1, 19, 200)
     l1 = CausalConvBlock(1, 20, kernel_size=(3, 2), stride=(2, 1), padding=(0, 1), )
