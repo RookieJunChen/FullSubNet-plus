@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-
+from causal_conv import TCNBlock
 
 class SequenceModel(nn.Module):
     def __init__(
@@ -27,7 +27,8 @@ class SequenceModel(nn.Module):
         """
         super().__init__()
         # Sequence layer
-        if sequence_model == "LSTM":
+        self.sequence_model_type = sequence_model
+        if self.sequence_model_type == "LSTM":
             self.sequence_model = nn.LSTM(
                 input_size=input_size,
                 hidden_size=hidden_size,
@@ -35,13 +36,20 @@ class SequenceModel(nn.Module):
                 batch_first=True,
                 bidirectional=bidirectional,
             )
-        elif sequence_model == "GRU":
+        elif self.sequence_model_type == "GRU":
             self.sequence_model = nn.GRU(
                 input_size=input_size,
                 hidden_size=hidden_size,
                 num_layers=num_layers,
                 batch_first=True,
                 bidirectional=bidirectional,
+            )
+        elif self.sequence_model_type == "TCN":
+            self.sequence_model = nn.Sequential(
+                TCNBlock(in_channels=input_size, out_channels=input_size),
+                TCNBlock(in_channels=input_size, out_channels=input_size),
+                TCNBlock(in_channels=input_size, out_channels=input_size),
+                TCNBlock(in_channels=input_size, out_channels=output_size)
             )
         else:
             raise NotImplementedError(f"Not implemented {sequence_model}")
@@ -73,16 +81,18 @@ class SequenceModel(nn.Module):
             [B, F, T]
         """
         assert x.dim() == 3
-        self.sequence_model.flatten_parameters()
-
-        # contiguous 使元素在内存中连续，有利于模型优化，但分配了新的空间
-        # 建议在网络开始大量计算前使用一下
-        x = x.permute(0, 2, 1).contiguous()  # [B, F, T] => [B, T, F]
-        o, _ = self.sequence_model(x)
-        o = self.fc_output_layer(o)
-        if self.output_activate_function:
-            o = self.activate_function(o)
-        o = o.permute(0, 2, 1).contiguous()  # [B, T, F] => [B, F, T]
+        if self.sequence_model_type == "TCN":
+            o = self.sequence_model(x)
+        else:
+            self.sequence_model.flatten_parameters()
+            # contiguous 使元素在内存中连续，有利于模型优化，但分配了新的空间
+            # 建议在网络开始大量计算前使用一下
+            x = x.permute(0, 2, 1).contiguous()  # [B, F, T] => [B, T, F]
+            o, _ = self.sequence_model(x)
+            o = self.fc_output_layer(o)
+            if self.output_activate_function:
+                o = self.activate_function(o)
+            o = o.permute(0, 2, 1).contiguous()  # [B, T, F] => [B, F, T]
         return o
 
 
