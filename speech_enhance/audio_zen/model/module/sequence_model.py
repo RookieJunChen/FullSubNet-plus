@@ -54,22 +54,23 @@ class SequenceModel(nn.Module):
         else:
             raise NotImplementedError(f"Not implemented {sequence_model}")
 
-        # Fully connected layer
-        if bidirectional:
-            self.fc_output_layer = nn.Linear(hidden_size * 2, output_size)
-        else:
-            self.fc_output_layer = nn.Linear(hidden_size, output_size)
-
-        # Activation function layer
-        if output_activate_function:
-            if output_activate_function == "Tanh":
-                self.activate_function = nn.Tanh()
-            elif output_activate_function == "ReLU":
-                self.activate_function = nn.ReLU()
-            elif output_activate_function == "ReLU6":
-                self.activate_function = nn.ReLU6()
+        if self.sequence_model_type == "LSTM" or self.sequence_model_type == "GRU":
+            # Fully connected layer
+            if bidirectional:
+                self.fc_output_layer = nn.Linear(hidden_size * 2, output_size)
             else:
-                raise NotImplementedError(f"Not implemented activation function {self.activate_function}")
+                self.fc_output_layer = nn.Linear(hidden_size, output_size)
+
+            # Activation function layer
+            if output_activate_function:
+                if output_activate_function == "Tanh":
+                    self.activate_function = nn.Tanh()
+                elif output_activate_function == "ReLU":
+                    self.activate_function = nn.ReLU()
+                elif output_activate_function == "ReLU6":
+                    self.activate_function = nn.ReLU6()
+                else:
+                    raise NotImplementedError(f"Not implemented activation function {self.activate_function}")
 
         self.output_activate_function = output_activate_function
 
