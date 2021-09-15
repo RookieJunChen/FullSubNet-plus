@@ -65,17 +65,19 @@ class SequenceModel(nn.Module):
                 self.fc_output_layer = nn.Linear(hidden_size * 2, output_size)
             else:
                 self.fc_output_layer = nn.Linear(hidden_size, output_size)
+        else:
+            self.fc_output_layer = nn.Linear(output_size, output_size)
 
-            # Activation function layer
-            if output_activate_function:
-                if output_activate_function == "Tanh":
-                    self.activate_function = nn.Tanh()
-                elif output_activate_function == "ReLU":
-                    self.activate_function = nn.ReLU()
-                elif output_activate_function == "ReLU6":
-                    self.activate_function = nn.ReLU6()
-                else:
-                    raise NotImplementedError(f"Not implemented activation function {self.activate_function}")
+        # Activation function layer
+        if output_activate_function:
+            if output_activate_function == "Tanh":
+                self.activate_function = nn.Tanh()
+            elif output_activate_function == "ReLU":
+                self.activate_function = nn.ReLU()
+            elif output_activate_function == "ReLU6":
+                self.activate_function = nn.ReLU6()
+            else:
+                raise NotImplementedError(f"Not implemented activation function {self.activate_function}")
 
         self.output_activate_function = output_activate_function
 
@@ -88,7 +90,12 @@ class SequenceModel(nn.Module):
         """
         assert x.dim() == 3
         if self.sequence_model_type == "TCN":
-            o = self.sequence_model(x)
+            x = self.sequence_model(x)  # [B, F, T]
+            x = self.fc_output_layer(x.permute(0, 2, 1))    # [B, F, T] => [B, T, F]
+            if self.output_activate_function:
+                o = self.activate_function(x)
+            o = o.permute(0, 2, 1)  # [B, T, F] => [B, F, T]
+            return o
         else:
             self.sequence_model.flatten_parameters()
             # contiguous 使元素在内存中连续，有利于模型优化，但分配了新的空间
