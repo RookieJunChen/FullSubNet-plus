@@ -66,7 +66,7 @@ class CausalTransConvBlock(nn.Module):
 
 class TCNBlock(nn.Module):
     def __init__(self, in_channels=257, hidden_channel=512, out_channels=257, kernel_size=3, dilation=1,
-                 use_skip_connection=True, causal=False):
+                 use_skip_connection=True, causal=True):
         super().__init__()
         self.conv1x1 = nn.Conv1d(in_channels, hidden_channel, 1)
         self.prelu1 = nn.PReLU()
