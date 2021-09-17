@@ -1214,25 +1214,25 @@ class FullSub_NoAtt_Complex_FullSubNet(BaseModel):
         else:
             self.num_channels = num_freqs // subband_num + 1
 
-        if channel_attention_model:
-            if channel_attention_model == "SE":
-                self.channel_attention = ChannelSELayer(num_channels=self.num_channels)
-                self.channel_attention_real = ChannelSELayer(num_channels=self.num_channels)
-                self.channel_attention_imag = ChannelSELayer(num_channels=self.num_channels)
-            elif channel_attention_model == "ECA":
-                self.channel_attention = ChannelECAlayer(channel=self.num_channels)
-                self.channel_attention_real = ChannelECAlayer(channel=self.num_channels)
-                self.channel_attention_imag = ChannelECAlayer(channel=self.num_channels)
-            elif channel_attention_model == "CBAM":
-                self.channel_attention = ChannelCBAMLayer(num_channels=self.num_channels)
-                self.channel_attention_real = ChannelCBAMLayer(num_channels=self.num_channels)
-                self.channel_attention_imag = ChannelCBAMLayer(num_channels=self.num_channels)
-            elif channel_attention_model == "TSSE":
-                self.channel_attention = ChannelTimeSenseSELayer(num_channels=self.num_channels, kersize=kersize)
-                self.channel_attention_real = ChannelTimeSenseSELayer(num_channels=self.num_channels, kersize=kersize)
-                self.channel_attention_imag = ChannelTimeSenseSELayer(num_channels=self.num_channels, kersize=kersize)
-            else:
-                raise NotImplementedError(f"Not implemented channel attention model {self.channel_attention}")
+        # if channel_attention_model:
+        #     if channel_attention_model == "SE":
+        #         self.channel_attention = ChannelSELayer(num_channels=self.num_channels)
+        #         self.channel_attention_real = ChannelSELayer(num_channels=self.num_channels)
+        #         self.channel_attention_imag = ChannelSELayer(num_channels=self.num_channels)
+        #     elif channel_attention_model == "ECA":
+        #         self.channel_attention = ChannelECAlayer(channel=self.num_channels)
+        #         self.channel_attention_real = ChannelECAlayer(channel=self.num_channels)
+        #         self.channel_attention_imag = ChannelECAlayer(channel=self.num_channels)
+        #     elif channel_attention_model == "CBAM":
+        #         self.channel_attention = ChannelCBAMLayer(num_channels=self.num_channels)
+        #         self.channel_attention_real = ChannelCBAMLayer(num_channels=self.num_channels)
+        #         self.channel_attention_imag = ChannelCBAMLayer(num_channels=self.num_channels)
+        #     elif channel_attention_model == "TSSE":
+        #         self.channel_attention = ChannelTimeSenseSELayer(num_channels=self.num_channels, kersize=kersize)
+        #         self.channel_attention_real = ChannelTimeSenseSELayer(num_channels=self.num_channels, kersize=kersize)
+        #         self.channel_attention_imag = ChannelTimeSenseSELayer(num_channels=self.num_channels, kersize=kersize)
+        #     else:
+        #         raise NotImplementedError(f"Not implemented channel attention model {self.channel_attention}")
 
         self.fb_model = SequenceModel(
             input_size=num_freqs,
