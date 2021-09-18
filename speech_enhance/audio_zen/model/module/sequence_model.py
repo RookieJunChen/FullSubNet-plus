@@ -53,7 +53,7 @@ class SequenceModel(nn.Module):
                 TCNBlock(in_channels=input_size, out_channels=input_size, dilation=1),
                 TCNBlock(in_channels=input_size, out_channels=input_size, dilation=2),
                 TCNBlock(in_channels=input_size, out_channels=input_size, dilation=5),
-                TCNBlock(in_channels=input_size, out_channels=output_size, dilation=9),
+                TCNBlock(in_channels=input_size, out_channels=input_size, dilation=9),
                 nn.ReLU()
             )
         else:
@@ -66,7 +66,7 @@ class SequenceModel(nn.Module):
             else:
                 self.fc_output_layer = nn.Linear(hidden_size, output_size)
         else:
-            self.fc_output_layer = nn.Linear(output_size, output_size)
+            self.fc_output_layer = nn.Linear(input_size, output_size)
 
         # Activation function layer
         if output_activate_function:
