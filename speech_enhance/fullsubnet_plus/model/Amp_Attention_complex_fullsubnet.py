@@ -231,7 +231,7 @@ class FullSub_AllAtt_Complex_FullSubNet(BaseModel):
             sequence_model: Chose one sequence model as the basic model (GRU, LSTM)
         """
         super().__init__()
-        assert sequence_model in ("GRU", "LSTM"), f"{self.__class__.__name__} only support GRU and LSTM."
+        assert sequence_model in ("GRU", "LSTM", "TCN"), f"{self.__class__.__name__} only support GRU, LSTM and TCN."
 
         if subband_num == 1:
             self.num_channels = num_freqs
