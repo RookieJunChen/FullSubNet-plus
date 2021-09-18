@@ -91,9 +91,9 @@ class SequenceModel(nn.Module):
         assert x.dim() == 3
         if self.sequence_model_type == "TCN":
             x = self.sequence_model(x)  # [B, F, T]
-            x = self.fc_output_layer(x.permute(0, 2, 1))    # [B, F, T] => [B, T, F]
+            o = self.fc_output_layer(x.permute(0, 2, 1))    # [B, F, T] => [B, T, F]
             if self.output_activate_function:
-                o = self.activate_function(x)
+                o = self.activate_function(o)
             o = o.permute(0, 2, 1)  # [B, T, F] => [B, F, T]
             return o
         else:
