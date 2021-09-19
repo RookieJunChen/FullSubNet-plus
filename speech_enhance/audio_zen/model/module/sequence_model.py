@@ -46,14 +46,14 @@ class SequenceModel(nn.Module):
             )
         elif self.sequence_model_type == "TCN":
             self.sequence_model = nn.Sequential(
-                TCNBlock(in_channels=input_size, out_channels=input_size, dilation=1),
-                TCNBlock(in_channels=input_size, out_channels=input_size, dilation=2),
-                TCNBlock(in_channels=input_size, out_channels=input_size, dilation=5),
-                TCNBlock(in_channels=input_size, out_channels=input_size, dilation=9),
-                TCNBlock(in_channels=input_size, out_channels=input_size, dilation=1),
-                TCNBlock(in_channels=input_size, out_channels=input_size, dilation=2),
-                TCNBlock(in_channels=input_size, out_channels=input_size, dilation=5),
-                TCNBlock(in_channels=input_size, out_channels=input_size, dilation=9),
+                TCNBlock(in_channels=input_size, hidden_channel=hidden_size, out_channels=input_size, dilation=1),
+                TCNBlock(in_channels=input_size, hidden_channel=hidden_size, out_channels=input_size, dilation=2),
+                TCNBlock(in_channels=input_size, hidden_channel=hidden_size, out_channels=input_size, dilation=5),
+                TCNBlock(in_channels=input_size, hidden_channel=hidden_size, out_channels=input_size, dilation=9),
+                TCNBlock(in_channels=input_size, hidden_channel=hidden_size, out_channels=input_size, dilation=1),
+                TCNBlock(in_channels=input_size, hidden_channel=hidden_size, out_channels=input_size, dilation=2),
+                TCNBlock(in_channels=input_size, hidden_channel=hidden_size, out_channels=input_size, dilation=5),
+                TCNBlock(in_channels=input_size, hidden_channel=hidden_size, out_channels=input_size, dilation=9),
                 nn.ReLU()
             )
         else:
