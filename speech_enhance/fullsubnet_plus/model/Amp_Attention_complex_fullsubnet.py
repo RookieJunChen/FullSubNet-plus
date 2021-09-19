@@ -294,7 +294,7 @@ class FullSub_AllAtt_Complex_FullSubNet(BaseModel):
             hidden_size=sb_model_hidden_size,
             num_layers=2,
             bidirectional=False,
-            sequence_model=sequence_model,
+            sequence_model="TCN-subband",
             output_activate_function=sb_output_activate_function
         )
         self.subband_num = subband_num
