@@ -103,7 +103,7 @@ class SequenceModel(nn.Module):
             [B, F, T]
         """
         assert x.dim() == 3
-        if self.sequence_model_type == "TCN":
+        if self.sequence_model_type == "TCN" or self.sequence_model_type == "TCN-subband":
             x = self.sequence_model(x)  # [B, F, T]
             o = self.fc_output_layer(x.permute(0, 2, 1))    # [B, F, T] => [B, T, F]
             if self.output_activate_function:
