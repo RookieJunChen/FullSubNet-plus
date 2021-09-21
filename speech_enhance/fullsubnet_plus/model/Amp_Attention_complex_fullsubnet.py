@@ -454,7 +454,7 @@ class FullSub_MagWeightAtt_Complex_FullSubNet(BaseModel):
             hidden_size=fb_model_hidden_size,
             num_layers=2,
             bidirectional=False,
-            sequence_model=sequence_model,
+            sequence_model="TCN",
             output_activate_function=fb_output_activate_function
         )
 
@@ -464,7 +464,7 @@ class FullSub_MagWeightAtt_Complex_FullSubNet(BaseModel):
             hidden_size=fb_model_hidden_size,
             num_layers=2,
             bidirectional=False,
-            sequence_model=sequence_model,
+            sequence_model="TCN",
             output_activate_function=fb_output_activate_function
         )
 
@@ -474,7 +474,7 @@ class FullSub_MagWeightAtt_Complex_FullSubNet(BaseModel):
             hidden_size=fb_model_hidden_size,
             num_layers=2,
             bidirectional=False,
-            sequence_model=sequence_model,
+            sequence_model="TCN",
             output_activate_function=fb_output_activate_function
         )
 
@@ -642,7 +642,7 @@ class FullSub_AllSharedAtt_Complex_FullSubNet(BaseModel):
             hidden_size=fb_model_hidden_size,
             num_layers=2,
             bidirectional=False,
-            sequence_model=sequence_model,
+            sequence_model="TCN",
             output_activate_function=fb_output_activate_function
         )
 
@@ -652,7 +652,7 @@ class FullSub_AllSharedAtt_Complex_FullSubNet(BaseModel):
             hidden_size=fb_model_hidden_size,
             num_layers=2,
             bidirectional=False,
-            sequence_model=sequence_model,
+            sequence_model="TCN",
             output_activate_function=fb_output_activate_function
         )
 
@@ -662,7 +662,7 @@ class FullSub_AllSharedAtt_Complex_FullSubNet(BaseModel):
             hidden_size=fb_model_hidden_size,
             num_layers=2,
             bidirectional=False,
-            sequence_model=sequence_model,
+            sequence_model="TCN",
             output_activate_function=fb_output_activate_function
         )
 
@@ -835,7 +835,7 @@ class FullSub_ComplexSharedAtt_Complex_FullSubNet(BaseModel):
             hidden_size=fb_model_hidden_size,
             num_layers=2,
             bidirectional=False,
-            sequence_model=sequence_model,
+            sequence_model="TCN",
             output_activate_function=fb_output_activate_function
         )
 
@@ -845,7 +845,7 @@ class FullSub_ComplexSharedAtt_Complex_FullSubNet(BaseModel):
             hidden_size=fb_model_hidden_size,
             num_layers=2,
             bidirectional=False,
-            sequence_model=sequence_model,
+            sequence_model="TCN",
             output_activate_function=fb_output_activate_function
         )
 
@@ -855,7 +855,7 @@ class FullSub_ComplexSharedAtt_Complex_FullSubNet(BaseModel):
             hidden_size=fb_model_hidden_size,
             num_layers=2,
             bidirectional=False,
-            sequence_model=sequence_model,
+            sequence_model="TCN",
             output_activate_function=fb_output_activate_function
         )
 

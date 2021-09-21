@@ -59,7 +59,8 @@ class Full_Att_FullSubNet(BaseModel):
             elif channel_attention_model == "TSSE":
                 self.channel_attention = ChannelTimeSenseSELayer(num_channels=self.num_channels, kersize=kersize)
             elif channel_attention_model == "TSASE":
-                self.channel_attention = ChannelTimeSenseAttentionSELayer(num_channels=self.num_channels, kersize=kersize)
+                self.channel_attention = ChannelTimeSenseAttentionSELayer(num_channels=self.num_channels,
+                                                                          kersize=kersize)
             elif channel_attention_model == "DTSSE":
                 self.channel_attention = ChannelDeepTimeSenseSELayer(num_channels=self.num_channels, kersize=kersize)
             else:
@@ -206,7 +207,8 @@ class Sub_Att_FullSubNet(BaseModel):
             elif channel_attention_model == "TSSE":
                 self.channel_attention = ChannelTimeSenseSELayer(num_channels=self.num_channels, kersize=kersize)
             elif channel_attention_model == "TSASE":
-                self.channel_attention = ChannelTimeSenseAttentionSELayer(num_channels=self.num_channels, kersize=kersize)
+                self.channel_attention = ChannelTimeSenseAttentionSELayer(num_channels=self.num_channels,
+                                                                          kersize=kersize)
             elif channel_attention_model == "DTSSE":
                 self.channel_attention = ChannelDeepTimeSenseSELayer(num_channels=self.num_channels, kersize=kersize)
             else:
@@ -260,7 +262,8 @@ class Sub_Att_FullSubNet(BaseModel):
         assert num_channels == 1, f"{self.__class__.__name__} takes the mag feature as inputs."
 
         if self.subband_num == 1:
-            attentioned_mag = self.norm(noisy_mag).reshape(batch_size, num_channels * num_freqs, num_frames)  # [B, F, T]
+            attentioned_mag = self.norm(noisy_mag).reshape(batch_size, num_channels * num_freqs,
+                                                           num_frames)  # [B, F, T]
             attentioned_mag = self.channel_attention(attentioned_mag)
 
         else:
@@ -268,9 +271,10 @@ class Sub_Att_FullSubNet(BaseModel):
             # Fullband model
             attentioned_mag = functional.pad(self.norm(noisy_mag), [0, 0, 0, pad_num], mode="reflect")
             attentioned_mag = attentioned_mag.reshape(batch_size, (num_freqs + pad_num) // self.subband_num,
-                                        num_frames * self.subband_num)  # [B, subband_num, T]
+                                                      num_frames * self.subband_num)  # [B, subband_num, T]
             attentioned_mag = self.channel_attention(attentioned_mag)
-            attentioned_mag = attentioned_mag.reshape(batch_size, num_channels * (num_freqs + pad_num), num_frames)[:, :num_freqs, :]
+            attentioned_mag = attentioned_mag.reshape(batch_size, num_channels * (num_freqs + pad_num), num_frames)[:,
+                              :num_freqs, :]
 
         fb_input = self.norm(noisy_mag).reshape(batch_size, num_channels * num_freqs, num_frames)
         fb_output = self.fb_model(fb_input).reshape(batch_size, 1, num_freqs, num_frames)
@@ -358,7 +362,8 @@ class FullSub_Att_FullSubNet(BaseModel):
             elif channel_attention_model == "TSSE":
                 self.channel_attention = ChannelTimeSenseSELayer(num_channels=self.num_channels, kersize=kersize)
             elif channel_attention_model == "TSASE":
-                self.channel_attention = ChannelTimeSenseAttentionSELayer(num_channels=self.num_channels, kersize=kersize)
+                self.channel_attention = ChannelTimeSenseAttentionSELayer(num_channels=self.num_channels,
+                                                                          kersize=kersize)
             elif channel_attention_model == "DTSSE":
                 self.channel_attention = ChannelDeepTimeSenseSELayer(num_channels=self.num_channels, kersize=kersize)
             else:
@@ -429,7 +434,6 @@ class FullSub_Att_FullSubNet(BaseModel):
         # fb_input = self.channel_attention(fb_input)
         # # take the first F
         # fb_input = fb_input.reshape(batch_size, num_channels * (num_freqs + pad_num), num_frames)[:, :num_freqs, :]
-
 
         fb_output = self.fb_model(fb_input).reshape(batch_size, 1, num_freqs, num_frames)
 
