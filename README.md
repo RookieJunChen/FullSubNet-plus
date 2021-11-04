@@ -16,7 +16,7 @@ This Git repository for the official PyTorch implementation of ["FullSubNet+: Ch
 
 \- NVIDIA GPU + CUDA CuDNN (CPU is **not** be supported)
 
- <br/><br/>
+ <br/>
 
 ### Environment && Installation
 
@@ -41,7 +41,7 @@ pip install librosa pesq pypesq pystoi tqdm toml colorful mir_eval torch_complex
 conda install -c conda-forge ffmpeg
 ```
 
-<br/><br/><br/><br/> 
+<br/><br/> 
 
 ## Start Up
 
@@ -52,7 +52,7 @@ git https://github.com/hit-thusz-RookieCJ/FullSubNet-plus.git
 cd FullSubNet-plus
 ```
 
-<br/><br/>
+<br/>
 
 ### Data preparation
 
@@ -76,7 +76,7 @@ bash run.sh 0   # peprare training list or meta file
 
 Please prepare your test cases dir like: `data/test_cases_<name>`, and set the test dir in the script `run.sh`.
 
-<br/><br/>
+<br/>
 
 ### Training
 
@@ -89,7 +89,7 @@ source activate speech_enhance
 bash run.sh 1   
 ```
 
-<br/><br/>
+<br/>
 
 ### Inference
 
@@ -109,7 +109,7 @@ source activate speech_enhance
 bash inference.sh
 ```
 
-<br/><br/>
+<br/>
 
 ### Eval
 
