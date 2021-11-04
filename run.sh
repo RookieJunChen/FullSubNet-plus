@@ -1,12 +1,5 @@
 #!/usr/bin/env bash
 
-# Brief: pipline for speech_enhance's pipline, including data prepraration, train acoustic, test, export, etc.
-#        we use project-cpfs-xxx to store the temperatory data
-#        I use this link to build our speech enhance project:
-#        https://github.com/haoxiangsnr/FullSubNet/blob/main/docs/getting_started.md#logs-and-visualization
-# Author: deyituo
-# Date: 2021/06/23
-
 #set -eux
 if test "$#" -eq 1; then
   stage=$(($1))
@@ -46,11 +39,6 @@ fi
 #############################################
 # generate list of clean/noise for training, dir of synthesic noisy-clean pair for val
 if [ ${stage} -le 0 ] && [ ${stop_stage} -ge 0 ]; then
-  # downsample 48k -> 24k
-  # /usr/bin/python3 -m speech_enhance.tools.resample_dir --dataset_dir ${corpus_name}/DNS-Challenge/DNS-Challenge-master/datasets_fullband/clean_fullband --output_dir ${corpus_name}/DNS-Challenge/DNS-Challenge-master/datasets_16k/clean
-  # /usr/bin/python3 -m speech_enhance.tools.resample_dir --dataset_dir ${corpus_name}/DNS-Challenge/DNS-Challenge-master/datasets_fullband/noise_fullband --output_dir ${corpus_name}/DNS-Challenge/DNS-Challenge-master/datasets_16k/noise
-  # /usr/bin/python3 -m speech_enhance.tools.resample_dir --dataset_dir ${corpus_name}/DNS-Challenge/DNS-Challenge-master/datasets_fullband/dev_testset_fullband --output_dir ${corpus_name}/DNS-Challenge/DNS-Challenge-master/datasets_16k/dev_testset
-  # /usr/bin/python3 -m speech_enhance.tools.resample_dir --dataset_dir ${corpus_name}/rir/ --output_dir ${corpus_name}/rir_16k/
   # gen lst
   /usr/bin/python3 -m speech_enhance.tools.gen_lst --dataset_dir ${corpus_name}/DNS-Challenge/DNS-Challenge-master/datasets_16k/clean/ --output_lst ${train_data_dir}/clean.txt
   /usr/bin/python3 -m speech_enhance.tools.gen_lst --dataset_dir ${corpus_name}/DNS-Challenge/DNS-Challenge-master/datasets_16k/noise/ --output_lst ${train_data_dir}/noise.txt
@@ -68,7 +56,7 @@ fi
 
 # train
 if [ ${stage} -le 1 ] && [ ${stop_stage} -ge 1 ]; then
-  CUDA_VISIBLE_DEVICES='0,1' /usr/bin/python3 -m speech_enhance.tools.train -C config/train_origin_fullsubnet.toml -N 2
+  CUDA_VISIBLE_DEVICES='0,1' /usr/bin/python3 -m speech_enhance.tools.train -C config/train.toml -N 2
 fi
 
 # test

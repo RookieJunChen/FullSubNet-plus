@@ -1,39 +1,44 @@
 [acoustics]
-n_fft = 768
-win_length = 768
-sr = 24000
-hop_length = 384
+n_fft = 512
+win_length = 512
+sr = 16000
+hop_length = 256
 
 
 [inferencer]
-path = "fullsubnet.inferencer.inferencer.Inferencer"
-type = "full_band_crm_mask"
+path = "fullsubnet_plus.model.fullsubnet_plus.Sub_FullSubNet_Plus"
+type = "mag_complex_full_band_crm_mask"
+# type = "full_band_crm_mask"
 [inferencer.args]
-n_neighbor = 23
+n_neighbor = 15
 
 
 [dataset]
 path = "fullsubnet.dataset.dataset_inference.Dataset"
 [dataset.args]
 dataset_dir_list = [
-    "data/DNS-Challenge/DNS-Challenge-interspeech2020-master/datasets/test_set/synthetic/no_reverb/"
+    "/workspace/project-nas-11025-sh/speech_enhance/data/DNS-Challenge/DNS-Challenge-interspeech2020-master/datasets/test_set/synthetic/with_reverb/noisy"
+    # "/workspace/project-nas-11025-sh/speech_enhance/data/DNS-Challenge/DNS-Challenge-interspeech2020-master/datasets/test_set/synthetic/no_reverb/noisy"
 ]
-sr = 24000
+sr = 16000
 
 
 [model]
-path = "fullsubnet.model.fullsubnet.Model"
+path = "fullsubnet_plus.model.Amp_Attention_complex_fullsubnet.FullSub_AllAtt_Complex_FullSubNet"
+# path = "fullsubnet.model.fullsubnet.Model"
 [model.args]
-sb_num_neighbors = 23
+sb_num_neighbors = 15
 fb_num_neighbors = 0
-num_freqs = 385
+num_freqs = 257
 look_ahead = 2
 sequence_model = "LSTM"
 fb_output_activate_function = "ReLU"
 sb_output_activate_function = false
+channel_attention_model = "TSSE"
 fb_model_hidden_size = 512
 sb_model_hidden_size = 384
 weight_init = false
 norm_type = "offline_laplace_norm"
 num_groups_in_drop_band = 2
-
+kersize=[3, 5, 10]
+subband_num = 1

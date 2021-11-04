@@ -2,7 +2,7 @@
 
 This Git repository for the official PyTorch implementation of ["FullSubNet+: Channel Attention FullSubNet with Complex Spectrograms for Speech Enhancement"](),  submitted to ICASSP 2021.
 
-
+▶[[Demo](https://hit-thusz-rookiecj.github.io/fullsubnet-plus.github.io/)]
 
 
 
@@ -63,6 +63,59 @@ Please prepare your data in the data dir as like:
 - data/DNS-Challenge/DNS-Challenge-interspeech2020-master/
 - data/DNS-Challenge/DNS-Challenge-master/
 
+and set the train dir in the script `run.sh`.
+
+then:
+
+```shell
+source activate speech_enhance
+bash run.sh 0   # peprare training list or meta file
+```
+
 #### Test(eval) data
 
-Please prepare your test cases dir like: `data/test_cases_<name>`, and set the test dir in the script `egs/xxx/syy/run.sh`.
+Please prepare your test cases dir like: `data/test_cases_<name>`, and set the test dir in the script `run.sh`.
+
+
+
+### Training
+
+First, you need to modify the various configurations in `config/train.toml` for training.
+
+Then you can run training:
+
+```shell
+source activate speech_enhance
+bash run.sh 1   
+```
+
+
+
+### Inference
+
+After training, you can enhance noisy speech.  Before inference, you first need to modify the configuration in `config/inference.toml`.
+
+Then you can run inference:
+
+```shell
+source activate speech_enhance
+bash run.sh 2
+```
+
+Or you can just use `inference.sh`:
+
+```shell
+source activate speech_enhance
+bash inference.sh
+```
+
+
+
+### Eval
+
+Calculating metrics (SI_SDR, STOI, WB_PESQ, NB_PESQ, etc.) :
+
+```shell
+bash metrics.sh
+```
+
