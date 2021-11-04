@@ -24,35 +24,20 @@ Install Anaconda or Miniconda, and then install conda and pip packages:
 
 ```shell
 # Create conda environment
-
 conda create --name speech_enhance python=3.6
-
 conda activate speech_enhance
 
-
-
 # Install conda packages
-
 # Check python=3.8, cudatoolkit=10.2, pytorch=1.7.1, torchaudio=0.7
-
 conda install pytorch torchvision torchaudio cudatoolkit=10.2 -c pytorch
-
 conda install tensorboard joblib matplotlib
 
-
-
 # Install pip packages
-
 # Check librosa=0.8
-
 pip install Cython
-
 pip install librosa pesq pypesq pystoi tqdm toml colorful mir_eval torch_complex
 
-
-
 # (Optional) If you want to load "mp3" format audio in your dataset
-
 conda install -c conda-forge ffmpeg
 ```
 
@@ -60,3 +45,24 @@ conda install -c conda-forge ffmpeg
 
 ## Start Up
 
+### Clone
+
+```shell
+git https://github.com/hit-thusz-RookieCJ/FullSubNet-plus.git
+cd FullSubNet-plus
+```
+
+
+
+### Data preparation
+
+#### Train data
+
+Please prepare your data in the data dir as like:
+
+- data/DNS-Challenge/DNS-Challenge-interspeech2020-master/
+- data/DNS-Challenge/DNS-Challenge-master/
+
+#### Test(eval) data
+
+Please prepare your test cases dir like: `data/test_cases_<name>`, and set the test dir in the script `egs/xxx/syy/run.sh`.
