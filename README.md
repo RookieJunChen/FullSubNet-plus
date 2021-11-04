@@ -76,7 +76,7 @@ bash run.sh 0   # peprare training list or meta file
 
 Please prepare your test cases dir like: `data/test_cases_<name>`, and set the test dir in the script `run.sh`.
 
-<br/>
+
 
 ### Training
 
