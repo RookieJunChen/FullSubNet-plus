@@ -72,7 +72,7 @@ source activate speech_enhance
 bash run.sh 0   # peprare training list or meta file
 ```
 
-#### Test(eval) data
+#### Test data
 
 Please prepare your test cases dir like: `data/test_cases_<name>`, and set the test dir in the script `run.sh`.
 
