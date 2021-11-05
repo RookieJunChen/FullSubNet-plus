@@ -65,7 +65,7 @@ Please prepare your data in the data dir as like:
 
 and set the train dir in the script `run.sh`.
 
-then:
+Then:
 
 ```shell
 source activate speech_enhance
