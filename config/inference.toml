@@ -6,7 +6,7 @@ hop_length = 256
 
 
 [inferencer]
-path = "fullsubnet_plus.model.fullsubnet_plus.Sub_FullSubNet_Plus"
+path = "fullsubnet_plus.inferencer.inferencer.Inferencer"
 type = "mag_complex_full_band_crm_mask"
 # type = "full_band_crm_mask"
 [inferencer.args]
@@ -24,7 +24,7 @@ sr = 16000
 
 
 [model]
-path = "fullsubnet_plus.model.Amp_Attention_complex_fullsubnet.FullSub_AllAtt_Complex_FullSubNet"
+path = "fullsubnet_plus.model.fullsubnet_plus.FullSubNet_Plus"
 # path = "fullsubnet.model.fullsubnet.Model"
 [model.args]
 sb_num_neighbors = 15
