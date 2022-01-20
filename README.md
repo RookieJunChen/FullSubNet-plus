@@ -1,6 +1,6 @@
 # FullSubNet+
 
-This Git repository for the official PyTorch implementation of ["FullSubNet+: Channel Attention FullSubNet with Complex Spectrograms for Speech Enhancement"](),  submitted to ICASSP 2021.
+This Git repository for the official PyTorch implementation of **"FullSubNet+: Channel Attention FullSubNet with Complex Spectrograms for Speech Enhancement"**,  submitted to ICASSP 2021.
 
 ▶[[Demo](https://hit-thusz-rookiecj.github.io/fullsubnet-plus.github.io/)]
 
@@ -113,9 +113,13 @@ bash inference.sh
 
 ### Eval
 
-Calculating metrics (SI_SDR, STOI, WB_PESQ, NB_PESQ, etc.) :
+Calculating bjective metrics (SI_SDR, STOI, WB_PESQ, NB_PESQ, etc.) :
 
 ```shell
 bash metrics.sh
 ```
 
+Obtain subjective scores (DNS_MOS):
+```shell
+python ./speech_enhance/tools/dns_mos.py --testset_dir $YOUR_TESTSET_DIR --score_file $YOUR_SAVE_DIR
+```
