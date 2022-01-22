@@ -48,7 +48,7 @@ conda install -c conda-forge ffmpeg
 ### Clone
 
 ```shell
-git https://github.com/hit-thusz-RookieCJ/FullSubNet-plus.git
+git clone https://github.com/hit-thusz-RookieCJ/FullSubNet-plus.git
 cd FullSubNet-plus
 ```
 
