@@ -1,6 +1,6 @@
 # FullSubNet+
 
-This Git repository for the official PyTorch implementation of **"FullSubNet+: Channel Attention FullSubNet with Complex Spectrograms for Speech Enhancement"**,  accepted by ICASSP 2021.
+This Git repository for the official PyTorch implementation of **"FullSubNet+: Channel Attention FullSubNet with Complex Spectrograms for Speech Enhancement"**,  accepted by ICASSP 2022.
 
 ▶[[Demo](https://hit-thusz-rookiecj.github.io/fullsubnet-plus.github.io/)] 💿[[Checkpoint](https://drive.google.com/file/d/1UJSt1G0P_aXry-u79LLU_l9tCnNa2u7C/view)]
 
@@ -39,6 +39,32 @@ pip install librosa pesq pypesq pystoi tqdm toml colorful mir_eval torch_complex
 
 # (Optional) If you want to load "mp3" format audio in your dataset
 conda install -c conda-forge ffmpeg
+```
+
+
+
+### Quick Usage
+
+Clone the repository:
+
+```shell
+git clone https://github.com/hit-thusz-RookieCJ/FullSubNet-plus.git
+cd FullSubNet-plus
+```
+
+Download the [pre-trained Checkpoint](https://drive.google.com/file/d/1UJSt1G0P_aXry-u79LLU_l9tCnNa2u7C/view), and write out its file location in `model.path` of `config/train.toml`.
+
+You need to write out the directory of the audio files to be enhanced on the `dataset.args.dataset_dir_list` of `config/train.toml`.
+
+Input commands:
+
+```shell
+source activate speech_enhance
+python -m speech_enhance.tools.inference \
+  -C config/inference.toml \
+  -M $MODEL_DIR \
+  -I $INPUT_DIR \
+  -O $OUTPUT_DIR
 ```
 
 <br/> 
@@ -95,7 +121,7 @@ bash run.sh 1
 
 After training, you can enhance noisy speech.  Before inference, you first need to modify the configuration in `config/inference.toml`.
 
-Then you can run inference:
+You can also run inference:
 
 ```shell
 source activate speech_enhance
@@ -108,6 +134,8 @@ Or you can just use `inference.sh`:
 source activate speech_enhance
 bash inference.sh
 ```
+
+
 
 
 
