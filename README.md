@@ -52,9 +52,7 @@ git clone https://github.com/hit-thusz-RookieCJ/FullSubNet-plus.git
 cd FullSubNet-plus
 ```
 
-Download the [pre-trained checkpoint](https://drive.google.com/file/d/1UJSt1G0P_aXry-u79LLU_l9tCnNa2u7C/view), and write its file location in `model.path` of `config/train.toml`.
-
-You need to write the directory of the audio files to be enhanced on the `dataset.args.dataset_dir_list` of `config/train.toml`.
+Download the [pre-trained checkpoint](https://drive.google.com/file/d/1UJSt1G0P_aXry-u79LLU_l9tCnNa2u7C/view).
 
 Input commands:
 
