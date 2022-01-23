@@ -52,9 +52,7 @@ git clone https://github.com/hit-thusz-RookieCJ/FullSubNet-plus.git
 cd FullSubNet-plus
 ```
 
-Download the [pre-trained checkpoint](https://drive.google.com/file/d/1UJSt1G0P_aXry-u79LLU_l9tCnNa2u7C/view).
-
-Input commands:
+Download the [pre-trained checkpoint](https://drive.google.com/file/d/1UJSt1G0P_aXry-u79LLU_l9tCnNa2u7C/view), and input commands:
 
 ```shell
 source activate speech_enhance
