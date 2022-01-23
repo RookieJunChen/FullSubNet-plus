@@ -14,7 +14,7 @@ This Git repository for the official PyTorch implementation of **"FullSubNet+: C
 
 \- Anaconda or Miniconda
 
-\- NVIDIA GPU + CUDA CuDNN (CPU is **not** be supported)
+\- NVIDIA GPU + CUDA CuDNN (CPU is also be supported)
 
 
 
