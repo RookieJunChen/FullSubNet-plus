@@ -1,21 +1,3 @@
-<!-- START doctoc generated TOC please keep comment here to allow auto update -->
-<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
-
-- [FullSubNet+](#fullsubnet)
-  - [Requirements](#requirements)
-    - [Environment && Installation](#environment--installation)
-    - [Quick Usage](#quick-usage)
-  - [Start Up](#start-up)
-    - [Clone](#clone)
-    - [Data preparation](#data-preparation)
-      - [Train data](#train-data)
-      - [Test data](#test-data)
-    - [Training](#training)
-    - [Inference](#inference)
-    - [Eval](#eval)
-
-<!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # FullSubNet+
 
