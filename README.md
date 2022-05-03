@@ -3,7 +3,7 @@
 
 This Git repository for the official PyTorch implementation of **"[FullSubNet+: Channel Attention FullSubNet with Complex Spectrograms for Speech Enhancement](https://arxiv.org/abs/2203.12188)"**,  accepted by ICASSP 2022.
 
-📜[[Full Paper](https://arxiv.org/pdf/2203.12188.pdf)] ▶[[Demo](https://hit-thusz-rookiecj.github.io/fullsubnet-plus.github.io/)] 💿[[Checkpoint](https://drive.google.com/file/d/1UJSt1G0P_aXry-u79LLU_l9tCnNa2u7C/view)]
+📜[[Full Paper](https://arxiv.org/abs/2203.12188)] ▶[[Demo](https://hit-thusz-rookiecj.github.io/fullsubnet-plus.github.io/)] 💿[[Checkpoint](https://drive.google.com/file/d/1UJSt1G0P_aXry-u79LLU_l9tCnNa2u7C/view)]
 
 
 
