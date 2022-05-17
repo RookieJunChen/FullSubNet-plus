@@ -9,13 +9,13 @@ This Git repository for the official PyTorch implementation of **"[FullSubNet+: 
 
 ## Requirements
 
-\- Linux or macOS 
+- Linux or macOS 
 
-\- python>=3.6
+- python>=3.6
 
-\- Anaconda or Miniconda
+- Anaconda or Miniconda
 
-\- NVIDIA GPU + CUDA CuDNN (CPU can also be supported)
+- NVIDIA GPU + CUDA CuDNN (CPU can also be supported)
 
 
 
