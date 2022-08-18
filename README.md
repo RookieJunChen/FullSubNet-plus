@@ -148,3 +148,18 @@ Obtain subjective scores (DNS_MOS):
 ```shell
 python ./speech_enhance/tools/dns_mos.py --testset_dir $YOUR_TESTSET_DIR --score_file $YOUR_SAVE_DIR
 ```
+
+
+
+## Citation
+If you find our work useful in your research, please consider citing:
+```
+@inproceedings{chen2022fullsubnet+,
+  title={FullSubNet+: Channel Attention FullSubNet with Complex Spectrograms for Speech Enhancement},
+  author={Chen, Jun and Wang, Zilin and Tuo, Deyi and Wu, Zhiyong and Kang, Shiyin and Meng, Helen},
+  booktitle={ICASSP 2022-2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
+  pages={7857--7861},
+  year={2022},
+  organization={IEEE}
+}
+```
