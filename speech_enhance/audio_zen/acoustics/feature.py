@@ -51,7 +51,9 @@ def istft(features, n_fft, hop_length, win_length, length=None, use_mag_phase=Fa
         # (mag, phase) or [mag, phase]
         assert isinstance(features, tuple) or isinstance(features, list)
         mag, phase = features
-        features = torch.stack([mag * torch.cos(phase), mag * torch.sin(phase)], dim=-1)
+        features = torch.complex(mag * torch.cos(phase), mag * torch.sin(phase))
+    else:
+        features = torch.complex(features[:, :, :, 0], features[:, :, :, 1])
 
     return torch.istft(
         features,
