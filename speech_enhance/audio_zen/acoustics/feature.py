@@ -17,8 +17,7 @@ def stft(y, n_fft, hop_length, win_length):
         device:
 
     Returns:
-        [B, F, T], **complex-valued** STFT coefficients
-
+        [B, F, T, 2], real and imaginary parts
     """
     assert y.dim() == 2
     return torch.stft(
@@ -27,7 +26,7 @@ def stft(y, n_fft, hop_length, win_length):
         hop_length,
         win_length,
         window=torch.hann_window(n_fft).to(y.device),
-        return_complex=True
+        return_complex=True  # Return complex tensor
     )
 
 
@@ -36,11 +35,10 @@ def istft(features, n_fft, hop_length, win_length, length=None, use_mag_phase=Fa
     Wrapper for the official torch.istft
 
     Args:
-        features: [B, F, T, 2] (complex) or ([B, F, T], [B, F, T]) (mag and phase)
+        features: complex tensor [B, F, T] or ([B, F, T], [B, F, T]) (mag and phase)
         n_fft:
         hop_length:
         win_length:
-        device:
         length:
         use_mag_phase: use mag and phase as inputs of iSTFT
 
@@ -48,10 +46,10 @@ def istft(features, n_fft, hop_length, win_length, length=None, use_mag_phase=Fa
         [B, T]
     """
     if use_mag_phase:
-        # (mag, phase) or [mag, phase]
+        # Convert magnitude and phase to complex tensor
         assert isinstance(features, tuple) or isinstance(features, list)
         mag, phase = features
-        features = torch.stack([mag * torch.cos(phase), mag * torch.sin(phase)], dim=-1)
+        features = mag * torch.exp(1j * phase)
 
     return torch.istft(
         features,
@@ -59,7 +57,8 @@ def istft(features, n_fft, hop_length, win_length, length=None, use_mag_phase=Fa
         hop_length,
         win_length,
         window=torch.hann_window(n_fft).to(features.device),
-        length=length
+        length=length,
+        return_complex=False  # Return real tensor
     )
 
 
@@ -71,12 +70,12 @@ def mc_stft(y_s, n_fft, hop_length, win_length):
         y_s: [B, C, T]
 
     Returns:
-        complex_value: [B, C, F, T]
+        [B, C, F, T], complex tensor
     """
     assert y_s.dim() == 3
     batch_size, num_channels, num_wav_samples = y_s.size()
 
-    # [B * C, F, T] in C
+    # [B * C, F, T]
     stft_coefficients = torch.stft(
         y_s.reshape(batch_size * num_channels, num_wav_samples),  # [B * C, T]
         n_fft=n_fft,
@@ -86,10 +85,20 @@ def mc_stft(y_s, n_fft, hop_length, win_length):
         return_complex=True
     )
 
-    return stft_coefficients.reshape(batch_size, num_channels, stft_coefficients.shape[-2], stft_coefficients.shape[-1])
+    # Reshape to [B, C, F, T]
+    return stft_coefficients.reshape(batch_size, num_channels, stft_coefficients.shape[1], stft_coefficients.shape[2])
 
 
 def mag_phase(complex_tensor):
+    """
+    Convert complex tensor to magnitude and phase
+    Args:
+        complex_tensor: [...] complex tensor
+
+    Returns:
+        magnitude: [...] tensor
+        phase: [...] tensor
+    """
     return torch.abs(complex_tensor), torch.angle(complex_tensor)
 
 
