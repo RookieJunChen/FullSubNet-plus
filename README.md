@@ -1,20 +1,21 @@
+
 # FullSubNet+
 
-This Git repository for the official PyTorch implementation of **"FullSubNet+: Channel Attention FullSubNet with Complex Spectrograms for Speech Enhancement"**,  accepted by ICASSP 2022.
+This Git repository for the official PyTorch implementation of **"[FullSubNet+: Channel Attention FullSubNet with Complex Spectrograms for Speech Enhancement](https://arxiv.org/abs/2203.12188)"**,  accepted by ICASSP 2022.
 
-▶[[Demo](https://hit-thusz-rookiecj.github.io/fullsubnet-plus.github.io/)] 💿[[Checkpoint](https://drive.google.com/file/d/1UJSt1G0P_aXry-u79LLU_l9tCnNa2u7C/view)]
+📜[[Full Paper](https://arxiv.org/abs/2203.12188)] ▶[[Demo](https://rookiejunchen.github.io/fullsubnet-plus.github.io/)] 💿[[Checkpoint](https://drive.google.com/file/d/1UJSt1G0P_aXry-u79LLU_l9tCnNa2u7C/view)]
 
 
 
 ## Requirements
 
-\- Linux or macOS 
+- Linux or macOS 
 
-\- python>=3.6
+- python>=3.6
 
-\- Anaconda or Miniconda
+- Anaconda or Miniconda
 
-\- NVIDIA GPU + CUDA CuDNN (CPU is **not** be supported)
+- NVIDIA GPU + CUDA CuDNN (CPU can also be supported)
 
 
 
@@ -52,11 +53,7 @@ git clone https://github.com/hit-thusz-RookieCJ/FullSubNet-plus.git
 cd FullSubNet-plus
 ```
 
-Download the [pre-trained checkpoint](https://drive.google.com/file/d/1UJSt1G0P_aXry-u79LLU_l9tCnNa2u7C/view), and write out its file location in `model.path` of `config/train.toml`.
-
-You need to write out the directory of the audio files to be enhanced on the `dataset.args.dataset_dir_list` of `config/train.toml`.
-
-Input commands:
+Download the [pre-trained checkpoint](https://drive.google.com/file/d/1UJSt1G0P_aXry-u79LLU_l9tCnNa2u7C/view), and input commands:
 
 ```shell
 source activate speech_enhance
@@ -150,4 +147,19 @@ bash metrics.sh
 Obtain subjective scores (DNS_MOS):
 ```shell
 python ./speech_enhance/tools/dns_mos.py --testset_dir $YOUR_TESTSET_DIR --score_file $YOUR_SAVE_DIR
+```
+
+
+
+## Citation
+If you find our work useful in your research, please consider citing:
+```
+@inproceedings{chen2022fullsubnet+,
+  title={FullSubNet+: Channel Attention FullSubNet with Complex Spectrograms for Speech Enhancement},
+  author={Chen, Jun and Wang, Zilin and Tuo, Deyi and Wu, Zhiyong and Kang, Shiyin and Meng, Helen},
+  booktitle={ICASSP 2022-2022 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)},
+  pages={7857--7861},
+  year={2022},
+  organization={IEEE}
+}
 ```

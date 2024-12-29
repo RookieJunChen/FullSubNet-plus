@@ -71,7 +71,7 @@ sr = 16000
 
 
 [model]
-path = "fullsubnet_plus.model.fullsubnet_plus.Sub_FullSubNet_Plus"
+path = "fullsubnet_plus.model.fullsubnet_plus.FullSubNet_Plus"
 [model.args]
 sb_num_neighbors = 15
 fb_num_neighbors = 0

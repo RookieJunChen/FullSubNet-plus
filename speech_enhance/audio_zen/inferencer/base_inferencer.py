@@ -145,7 +145,7 @@ class BaseInferencer:
             enhanced = getattr(self, inference_type)(noisy.to(self.device), inference_args)
             t2 = time.time()
 
-            if abs(enhanced).any() > 1:
+            if (abs(enhanced) > 1).any():
                 print(f"Warning: enhanced is not in the range [-1, 1], {name}")
 
             amp = np.iinfo(np.int16).max
