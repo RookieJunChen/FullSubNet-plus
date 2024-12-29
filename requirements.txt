@@ -1,0 +1,28 @@
+# Core dependencies first
+numpy==2.0.2
+scipy==1.14.1
+
+# Core ML
+--find-links https://download.pytorch.org/whl/cu121
+torch==2.5.1
+torchaudio==2.5.1
+torch_complex==0.4.4
+
+# Audio processing
+librosa==0.10.2.post1
+soundfile==0.12.1
+pesq==0.0.4
+pystoi==0.4.1
+mir_eval==0.7
+
+# Data handling & utilities
+pandas==2.2.3
+toml==0.10.2
+PyYAML==6.0.2
+colorful==0.5.6
+tqdm==4.67.1
+
+# Monitoring
+GPUtil==1.4.0
+joblib==1.4.2
+matplotlib==3.10.0

@@ -115,8 +115,8 @@ class Inferencer(BaseInferencer):
 
     @torch.no_grad()
     def full_band_crm_mask(self, noisy, inference_args):
-        noisy_complex = self.torch_stft(noisy)
-        noisy_mag, _ = mag_phase(noisy_complex)
+        noisy_complex = self.torch_stft(noisy)  # Returns [B, F, T, 2]
+        noisy_mag = torch.norm(noisy_complex, p=2, dim=-1)  # Get magnitude from real/imag components
 
         noisy_mag = noisy_mag.unsqueeze(1)
         t1 = time.time()
@@ -125,13 +125,12 @@ class Inferencer(BaseInferencer):
         pred_crm = pred_crm.permute(0, 2, 3, 1)
 
         pred_crm = decompress_cIRM(pred_crm)
-        enhanced_real = pred_crm[..., 0] * noisy_complex.real - pred_crm[..., 1] * noisy_complex.imag
-        enhanced_imag = pred_crm[..., 1] * noisy_complex.real + pred_crm[..., 0] * noisy_complex.imag
+        enhanced_real = pred_crm[..., 0] * noisy_complex[..., 0] - pred_crm[..., 1] * noisy_complex[..., 1]
+        enhanced_imag = pred_crm[..., 1] * noisy_complex[..., 0] + pred_crm[..., 0] * noisy_complex[..., 1]
         enhanced_complex = torch.stack((enhanced_real, enhanced_imag), dim=-1)
         enhanced = self.torch_istft(enhanced_complex, length=noisy.size(-1))
         enhanced = enhanced.detach().squeeze(0).cpu().numpy()
 
-        #
         rtf = (t2 - t1) / (len(enhanced) * 1.0 / self.acoustic_config["sr"])
         print(f"model rtf: {rtf}")
 
@@ -139,12 +138,12 @@ class Inferencer(BaseInferencer):
 
     @torch.no_grad()
     def mag_complex_full_band_crm_mask(self, noisy, inference_args):
-        noisy_complex = self.torch_stft(noisy)
-        noisy_mag, _ = mag_phase(noisy_complex)
+        noisy_complex = self.torch_stft(noisy)  # Returns [B, F, T] complex tensor
+        noisy_mag = torch.abs(noisy_complex)  # Get magnitude
 
         noisy_mag = noisy_mag.unsqueeze(1)
-        noisy_real = (noisy_complex.real).unsqueeze(1)
-        noisy_imag = (noisy_complex.imag).unsqueeze(1)
+        noisy_real = noisy_complex.real.unsqueeze(1)
+        noisy_imag = noisy_complex.imag.unsqueeze(1)
 
         t1 = time.time()
         pred_crm = self.model(noisy_mag, noisy_real, noisy_imag)
@@ -154,11 +153,10 @@ class Inferencer(BaseInferencer):
         pred_crm = decompress_cIRM(pred_crm)
         enhanced_real = pred_crm[..., 0] * noisy_complex.real - pred_crm[..., 1] * noisy_complex.imag
         enhanced_imag = pred_crm[..., 1] * noisy_complex.real + pred_crm[..., 0] * noisy_complex.imag
-        enhanced_complex = torch.stack((enhanced_real, enhanced_imag), dim=-1)
+        enhanced_complex = enhanced_real + 1j * enhanced_imag
         enhanced = self.torch_istft(enhanced_complex, length=noisy.size(-1))
         enhanced = enhanced.detach().squeeze(0).cpu().numpy()
 
-        #
         rtf = (t2 - t1) / (len(enhanced) * 1.0 / self.acoustic_config["sr"])
         print(f"model rtf: {rtf}")
 
@@ -166,9 +164,9 @@ class Inferencer(BaseInferencer):
 
     @torch.no_grad()
     def complex_full_band_crm_mask(self, noisy, inference_args):
-        noisy_complex = self.torch_stft(noisy)
+        noisy_complex = self.torch_stft(noisy)  # Returns [B, F, T, 2]
 
-        noisy_input = torch.stack([noisy_complex.real, noisy_complex.imag], dim=1)
+        noisy_input = torch.stack([noisy_complex[..., 0], noisy_complex[..., 1]], dim=1)
 
         t1 = time.time()
         pred_crm = self.model(noisy_input)
@@ -176,13 +174,12 @@ class Inferencer(BaseInferencer):
         pred_crm = pred_crm.permute(0, 2, 3, 1)
 
         pred_crm = decompress_cIRM(pred_crm)
-        enhanced_real = pred_crm[..., 0] * noisy_complex.real - pred_crm[..., 1] * noisy_complex.imag
-        enhanced_imag = pred_crm[..., 1] * noisy_complex.real + pred_crm[..., 0] * noisy_complex.imag
+        enhanced_real = pred_crm[..., 0] * noisy_complex[..., 0] - pred_crm[..., 1] * noisy_complex[..., 1]
+        enhanced_imag = pred_crm[..., 1] * noisy_complex[..., 0] + pred_crm[..., 0] * noisy_complex[..., 1]
         enhanced_complex = torch.stack((enhanced_real, enhanced_imag), dim=-1)
         enhanced = self.torch_istft(enhanced_complex, length=noisy.size(-1))
         enhanced = enhanced.detach().squeeze(0).cpu().numpy()
 
-        #
         rtf = (t2 - t1) / (len(enhanced) * 1.0 / self.acoustic_config["sr"])
         print(f"model rtf: {rtf}")
 
