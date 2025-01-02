@@ -1,6 +1,6 @@
 import torch
 import torch.nn as nn
-from speech_enhance.audio_zen.model.module.causal_conv import TCNBlock
+from audio_zen.model.module.causal_conv import TCNBlock
 
 class SequenceModel(nn.Module):
     def __init__(

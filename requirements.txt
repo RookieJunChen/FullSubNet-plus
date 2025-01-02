@@ -7,6 +7,10 @@ scipy==1.14.1
 torch==2.5.1
 torchaudio==2.5.1
 torch_complex==0.4.4
+tensorrt
+pycuda
+onnx
+onnxruntime
 
 # Audio processing
 librosa==0.10.2.post1

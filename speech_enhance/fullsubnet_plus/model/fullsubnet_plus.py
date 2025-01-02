@@ -1,5 +1,6 @@
 import torch
 from torch.nn import functional
+import torch.cuda.nvtx as nvtx
 
 from audio_zen.acoustics.feature import drop_band
 from audio_zen.model.base_model import BaseModel
@@ -17,19 +18,18 @@ class FullSubNet_Plus(BaseModel):
     def __init__(self,
                  num_freqs,
                  look_ahead,
-                 sequence_model,
-                 fb_num_neighbors,
-                 sb_num_neighbors,
-                 fb_output_activate_function,
-                 sb_output_activate_function,
-                 fb_model_hidden_size,
-                 sb_model_hidden_size,
+                 sequence_model="TCN",
+                 fb_num_neighbors=15,
+                 sb_num_neighbors=15,
+                 fb_output_activate_function="ReLU",
+                 sb_output_activate_function="ReLU",
+                 fb_model_hidden_size=64,
+                 sb_model_hidden_size=64,
                  channel_attention_model="SE",
                  norm_type="offline_laplace_norm",
                  num_groups_in_drop_band=2,
                  output_size=2,
                  subband_num=1,
-                 kersize=[3, 5, 10],
                  weight_init=True,
                  ):
         """
@@ -42,33 +42,18 @@ class FullSubNet_Plus(BaseModel):
             sequence_model: Chose one sequence model as the basic model (GRU, LSTM)
         """
         super().__init__()
-        assert sequence_model in ("GRU", "LSTM", "TCN"), f"{self.__class__.__name__} only support GRU, LSTM and TCN."
+        
+        # Simplify to only use TCN
+        assert sequence_model == "TCN", "Only TCN is supported for ONNX export"
+        
+        self.num_channels = num_freqs if subband_num == 1 else (num_freqs // subband_num + 1)
 
-        if subband_num == 1:
-            self.num_channels = num_freqs
-        else:
-            self.num_channels = num_freqs // subband_num + 1
+        # Simplified SE attention
+        self.channel_attention = ChannelSELayer(num_channels=self.num_channels)
+        self.channel_attention_real = ChannelSELayer(num_channels=self.num_channels)
+        self.channel_attention_imag = ChannelSELayer(num_channels=self.num_channels)
 
-        if channel_attention_model:
-            if channel_attention_model == "SE":
-                self.channel_attention = ChannelSELayer(num_channels=self.num_channels)
-                self.channel_attention_real = ChannelSELayer(num_channels=self.num_channels)
-                self.channel_attention_imag = ChannelSELayer(num_channels=self.num_channels)
-            elif channel_attention_model == "ECA":
-                self.channel_attention = ChannelECAlayer(channel=self.num_channels)
-                self.channel_attention_real = ChannelECAlayer(channel=self.num_channels)
-                self.channel_attention_imag = ChannelECAlayer(channel=self.num_channels)
-            elif channel_attention_model == "CBAM":
-                self.channel_attention = ChannelCBAMLayer(num_channels=self.num_channels)
-                self.channel_attention_real = ChannelCBAMLayer(num_channels=self.num_channels)
-                self.channel_attention_imag = ChannelCBAMLayer(num_channels=self.num_channels)
-            elif channel_attention_model == "TSSE":
-                self.channel_attention = ChannelTimeSenseSELayer(num_channels=self.num_channels, kersize=kersize)
-                self.channel_attention_real = ChannelTimeSenseSELayer(num_channels=self.num_channels, kersize=kersize)
-                self.channel_attention_imag = ChannelTimeSenseSELayer(num_channels=self.num_channels, kersize=kersize)
-            else:
-                raise NotImplementedError(f"Not implemented channel attention model {self.channel_attention}")
-
+        # Use TCN for all sequence models
         self.fb_model = SequenceModel(
             input_size=num_freqs,
             output_size=num_freqs,
@@ -105,9 +90,11 @@ class FullSubNet_Plus(BaseModel):
             hidden_size=sb_model_hidden_size,
             num_layers=2,
             bidirectional=False,
-            sequence_model=sequence_model,
+            sequence_model="TCN",
             output_activate_function=sb_output_activate_function
         )
+
+        # Store configuration
         self.subband_num = subband_num
         self.sb_num_neighbors = sb_num_neighbors
         self.fb_num_neighbors = fb_num_neighbors
@@ -118,6 +105,37 @@ class FullSubNet_Plus(BaseModel):
 
         if weight_init:
             self.apply(self.weight_init)
+
+    def static_unfold(self, input, num_neighbor):
+        """Static version of unfold operation"""
+        batch_size, num_channels, num_freqs, num_frames = input.shape
+        
+        if num_neighbor < 1:
+            return input.permute(0, 2, 1, 3).reshape(batch_size, num_freqs, num_channels, 1, num_frames)
+        
+        # Use fixed padding
+        pad_size = num_neighbor
+        padded = torch.nn.functional.pad(
+            input.reshape(batch_size * num_channels, 1, num_freqs, num_frames),
+            [0, 0, pad_size, pad_size],
+            mode="reflect"
+        )
+        
+        # Manual unfold using fixed indices
+        sub_band_unit_size = num_neighbor * 2 + 1
+        output = []
+        
+        for i in range(num_freqs):
+            start_idx = i
+            end_idx = i + sub_band_unit_size
+            band = padded[:, :, start_idx:end_idx, :]
+            output.append(band)
+        
+        output = torch.stack(output, dim=1)
+        output = output.reshape(batch_size, num_channels, sub_band_unit_size, num_frames, num_freqs)
+        output = output.permute(0, 4, 1, 2, 3).contiguous()
+        
+        return output
 
     def forward(self, noisy_mag, noisy_real, noisy_imag):
         """
@@ -133,10 +151,18 @@ class FullSubNet_Plus(BaseModel):
             noisy_imag: [B, 1, F, T]
             return: [B, 2, F, T]
         """
+        nvtx.range_push("FullSubNet_Forward")
+        
+        # Input processing
+        nvtx.range_push("Input_Processing")
         assert noisy_mag.dim() == 4
-        noisy_mag = functional.pad(noisy_mag, [0, self.look_ahead])  # Pad the look ahead
-        noisy_real = functional.pad(noisy_real, [0, self.look_ahead])  # Pad the look ahead
-        noisy_imag = functional.pad(noisy_imag, [0, self.look_ahead])  # Pad the look ahead
+        noisy_mag = functional.pad(noisy_mag, [0, self.look_ahead])
+        noisy_real = functional.pad(noisy_real, [0, self.look_ahead])
+        noisy_imag = functional.pad(noisy_imag, [0, self.look_ahead])
+        nvtx.range_pop()
+        
+        # Fullband processing
+        nvtx.range_push("Fullband_Processing")
         batch_size, num_channels, num_freqs, num_frames = noisy_mag.size()
         assert num_channels == 1, f"{self.__class__.__name__} takes the mag feature as inputs."
 
@@ -152,39 +178,37 @@ class FullSubNet_Plus(BaseModel):
             fb_input = self.channel_attention(fb_input)
             fb_input = fb_input.reshape(batch_size, num_channels * (num_freqs + pad_num), num_frames)[:, :num_freqs, :]
         fb_output = self.fb_model(fb_input).reshape(batch_size, 1, num_freqs, num_frames)
-
-        # Fullband real model
+        nvtx.range_pop()
+        
+        # Real/Imag processing
+        nvtx.range_push("Complex_Processing")
         fbr_input = self.norm(noisy_real).reshape(batch_size, num_channels * num_freqs, num_frames)  # [B, F, T]
         fbr_input = self.channel_attention_real(fbr_input)
         fbr_output = self.fb_model_real(fbr_input).reshape(batch_size, 1, num_freqs, num_frames)
-
-        # Fullband imag model
         fbi_input = self.norm(noisy_imag).reshape(batch_size, num_channels * num_freqs, num_frames)  # [B, F, T]
         fbi_input = self.channel_attention_imag(fbi_input)
         fbi_output = self.fb_model_imag(fbi_input).reshape(batch_size, 1, num_freqs, num_frames)
-
-        # Unfold the output of the fullband model, [B, N=F, C, F_f, T]
-        fb_output_unfolded = self.unfold(fb_output, num_neighbor=self.fb_num_neighbors)
+        nvtx.range_pop()
+        
+        # Unfolding operations
+        nvtx.range_push("Unfolding")
+        fb_output_unfolded = self.static_unfold(fb_output, num_neighbor=self.fb_num_neighbors)
         fb_output_unfolded = fb_output_unfolded.reshape(batch_size, num_freqs, self.fb_num_neighbors * 2 + 1,
                                                         num_frames)
-
-        # Unfold the output of the fullband real model, [B, N=F, C, F_f, T]
-        fbr_output_unfolded = self.unfold(fbr_output, num_neighbor=self.fb_num_neighbors)
+        fbr_output_unfolded = self.static_unfold(fbr_output, num_neighbor=self.fb_num_neighbors)
         fbr_output_unfolded = fbr_output_unfolded.reshape(batch_size, num_freqs, self.fb_num_neighbors * 2 + 1,
                                                           num_frames)
-
-        # Unfold the output of the fullband imag model, [B, N=F, C, F_f, T]
-        fbi_output_unfolded = self.unfold(fbi_output, num_neighbor=self.fb_num_neighbors)
+        fbi_output_unfolded = self.static_unfold(fbi_output, num_neighbor=self.fb_num_neighbors)
         fbi_output_unfolded = fbi_output_unfolded.reshape(batch_size, num_freqs, self.fb_num_neighbors * 2 + 1,
                                                           num_frames)
-
-        # Unfold attention noisy input, [B, N=F, C, F_s, T]
-        noisy_mag_unfolded = self.unfold(fb_input.reshape(batch_size, 1, num_freqs, num_frames),
+        nvtx.range_pop()
+        
+        # Final processing
+        nvtx.range_push("Final_Processing")
+        noisy_mag_unfolded = self.static_unfold(fb_input.reshape(batch_size, 1, num_freqs, num_frames),
                                          num_neighbor=self.sb_num_neighbors)
         noisy_mag_unfolded = noisy_mag_unfolded.reshape(batch_size, num_freqs, self.sb_num_neighbors * 2 + 1,
                                                         num_frames)
-
-        # Concatenation, [B, F, (F_s + 3 * F_f), T]
         sb_input = torch.cat([noisy_mag_unfolded, fb_output_unfolded, fbr_output_unfolded, fbi_output_unfolded], dim=2)
         sb_input = self.norm(sb_input)
 
@@ -206,4 +230,6 @@ class FullSubNet_Plus(BaseModel):
         sb_mask = sb_mask.reshape(batch_size, num_freqs, self.output_size, num_frames).permute(0, 2, 1, 3).contiguous()
 
         output = sb_mask[:, :, :, self.look_ahead:]
+        nvtx.range_pop()
+        nvtx.range_pop()
         return output
