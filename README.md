@@ -49,7 +49,7 @@ conda install -c conda-forge ffmpeg
 Clone the repository:
 
 ```shell
-git clone https://github.com/hit-thusz-RookieCJ/FullSubNet-plus.git
+git clone https://github.com/RookieJunChen/FullSubNet-plus.git
 cd FullSubNet-plus
 ```
 
@@ -71,7 +71,7 @@ python -m speech_enhance.tools.inference \
 ### Clone
 
 ```shell
-git clone https://github.com/hit-thusz-RookieCJ/FullSubNet-plus.git
+git clone https://github.com/RookieJunChen/FullSubNet-plus.git
 cd FullSubNet-plus
 ```
 
